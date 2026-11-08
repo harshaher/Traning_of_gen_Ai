@@ -1,0 +1,194 @@
+[
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Search for a pattern within files",
+        "example_command": "grep \"{{search_pattern}}\" {{path/to/file1 path/to/file2 ...}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Search for an exact string (disables `regex`es)",
+        "example_command": "grep {{[-F|--fixed-strings]}} \"{{exact_string}}\" {{path/to/file}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Search for a pattern in all files recursively in a directory, ignoring binary files",
+        "example_command": "grep {{[-rI|--recursive --binary-files=without-match]}} \"{{search_pattern}}\" {{path/to/directory}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Print 3 lines of [C]ontext around, [B]efore, or [A]fter each match",
+        "example_command": "grep {{--context|--before-context|--after-context}} 3 \"{{search_pattern}}\" {{path/to/file}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Print file name and line number for each match with color output",
+        "example_command": "grep {{[-Hn|--with-filename --line-number]}} --color=always \"{{search_pattern}}\" {{path/to/file}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Print only the matched text",
+        "example_command": "grep {{[-o|--only-matching]}} \"{{search_pattern}}\" {{path/to/file}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Read data from `stdin` and do not print lines that match a pattern",
+        "example_command": "cat {{path/to/file}} | grep {{[-v|--invert-match]}} \"{{search_pattern}}\"",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "grep",
+        "platform": "linux",
+        "description": "Find patterns in files using `regex`es. See also: `rg`, `regex`. More information: <https://www.gnu.org/software/grep/manual/grep.html>.",
+        "example_task": "Use extended `regex`es (supports `?`, `+`, `{}`, `()`, and `|`), in case-insensitive mode",
+        "example_command": "grep {{[-Ei|--extended-regexp --ignore-case]}} \"{{search_pattern}}\" {{path/to/file}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/grep.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List files one per line",
+        "example_command": "ls -1",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List all files, including hidden files",
+        "example_command": "ls {{[-a|--all]}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List files with a trailing symbol to indicate file type (directory/, symbolic_link@, executable*, ...)",
+        "example_command": "ls {{[-F|--classify]}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List all files in [l]ong format (permissions, ownership, size, and modification date)",
+        "example_command": "ls {{[-la|-l --all]}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List files in [l]ong format with size displayed using human-readable units (KiB, MiB, GiB)",
+        "example_command": "ls {{[-lh|-l --human-readable]}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List files in [l]ong format, sorted by [S]ize (descending) recursively",
+        "example_command": "ls {{[-lSR|-lS --recursive]}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "List files in [l]ong format, sorted by [t]ime the file was modified and in reverse order (oldest first)",
+        "example_command": "ls {{[-ltr|-lt --reverse]}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "ls",
+        "platform": "linux",
+        "description": "List directory contents. More information: <https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html>.",
+        "example_task": "Only list directories",
+        "example_command": "ls {{[-d|--directory]}} */",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/ls.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "[c]reate an archive and write it to a [f]ile",
+        "example_command": "tar cf {{path/to/target.tar}} {{path/to/file1 path/to/file2 ...}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "[c]reate a g[z]ipped archive and write it to a [f]ile",
+        "example_command": "tar czf {{path/to/target.tar.gz}} {{path/to/file1 path/to/file2 ...}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "[c]reate a g[z]ipped (compressed) archive from a directory using relative paths",
+        "example_command": "tar czf {{path/to/target.tar.gz}} {{[-C|--directory]}} {{path/to/directory}} .",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "E[x]tract a (compressed) archive [f]ile into the current directory [v]erbosely",
+        "example_command": "tar xvf {{path/to/source.tar.ext}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "E[x]tract a (compressed) archive [f]ile into the target directory",
+        "example_command": "tar xf {{path/to/source.tar.ext}} {{[-C|--directory]}} {{path/to/directory}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "[c]reate a compressed archive and write it to a [f]ile, using the file extension to [a]utomatically determine the compression program",
+        "example_command": "tar caf {{path/to/target.tar.xz}} {{path/to/file1 path/to/file2 ...}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "Lis[t] the contents of a tar [f]ile [v]erbosely",
+        "example_command": "tar tvf {{path/to/source.tar}}",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    },
+    {
+        "command": "tar",
+        "platform": "linux",
+        "description": "Archiving utility. Often combined with a compression method, such as `gzip` or `bzip2`. More information: <https://www.gnu.org/software/tar/manual/tar.html>.",
+        "example_task": "E[x]tract files matching a pattern from an archive [f]ile",
+        "example_command": "tar xf {{path/to/source.tar}} --wildcards \"{{*.html}}\"",
+        "source_url": "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/tar.md"
+    }
+]
