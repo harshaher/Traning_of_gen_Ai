@@ -1,0 +1,10 @@
+﻿TASK: Explain a Linux command.
+
+When the user asks about a Linux command:
+1. Identify the correct command.
+2. Explain its purpose in simple English.
+3. Show the basic syntax.
+4. Provide one practical example.
+5. Explain important options if needed.
+
+Return the response using the JSON format defined in the system prompt.
