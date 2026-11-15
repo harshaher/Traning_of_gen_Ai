@@ -89,13 +89,13 @@ ShellSathi uses TF-IDF and Cosine Similarity for intelligent command searching.
 | 3 | How can I display hidden files? | ls |
 | 4 | How can I search for an exact string in a file? | grep |
 | 5 | How can I list files in long format? | ls |
-| 6 | What will the weather be tomorrow? | Not available in the dataset |
+| 6 | What will the weather be tomorrow? | Out of scope - honest "I don't know" |
 | 7 | How can I search inside files recursively? | grep |
 | 8 | How can I create a compressed archive? | tar |
 | 9 | How can I extract an archive into a target directory? | tar |
 | 10 | How can I list the contents of a tar archive? | tar |
 
-Question 6 is outside the scope of the current Linux command dataset.
+Question 6 is outside the scope of the current Linux command dataset. ShellSathi must provide an honest "I don't know" response rather than hallucinating an answer.
 
 ## 7. FastAPI in ShellSathi
 
