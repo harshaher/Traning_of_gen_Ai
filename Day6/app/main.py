@@ -37,12 +37,20 @@ def health_check():
 
 
 @app.get("/records")
-def get_records():
+def get_records(limit: int = Query(default=10, ge=1, le=100)):
     records = load_records()
 
+    results = []
+
+    for index, record in enumerate(records[:limit]):
+        item = record.copy()
+        item["id"] = index + 1
+        results.append(item)
+
     return {
-        "total_records": len(records),
-        "records": records
+        "total": len(records),
+        "showing": len(results),
+        "records": results
     }
 
 
@@ -94,8 +102,18 @@ def chat_with_shellsathi(request: ChatRequest):
     try:
         answer_text = generate_answer(request.question)
 
+        # Clean markdown code fences if present in LLM response
+        clean_text = answer_text.strip()
+        if clean_text.startswith("```"):
+            lines = clean_text.splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            clean_text = "\n".join(lines).strip()
+
         # Parse the JSON returned by the LLM
-        answer_data = json.loads(answer_text)
+        answer_data = json.loads(clean_text)
 
         # Validate the response structure
         return ChatResponse(**answer_data)
