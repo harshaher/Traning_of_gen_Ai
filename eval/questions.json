@@ -1,0 +1,62 @@
+[
+    {
+        "id": "Q1",
+        "question": "How can I list files in Linux?",
+        "expected_command": "ls",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q2",
+        "question": "How can I search for a pattern inside files?",
+        "expected_command": "grep",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q3",
+        "question": "How can I display hidden files?",
+        "expected_command": "ls -a",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q4",
+        "question": "How can I search for an exact string in a file?",
+        "expected_command": "grep -F",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q5",
+        "question": "How can I list files in long format?",
+        "expected_command": "ls -l",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q6",
+        "question": "Why is our company VPN slow from the Hinjewadi office today?",
+        "expected_command": "None (Honest 'I don't know')",
+        "category": "Out-of-Scope"
+    },
+    {
+        "id": "Q7",
+        "question": "How can I search inside files recursively?",
+        "expected_command": "grep -r",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q8",
+        "question": "How can I create a compressed archive?",
+        "expected_command": "tar -czvf",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q9",
+        "question": "How can I extract an archive into a target directory?",
+        "expected_command": "tar -xvf -C",
+        "category": "In-Scope"
+    },
+    {
+        "id": "Q10",
+        "question": "How can I list the contents of a tar archive?",
+        "expected_command": "tar -tvf",
+        "category": "In-Scope"
+    }
+]

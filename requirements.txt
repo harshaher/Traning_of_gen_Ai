@@ -71,3 +71,8 @@ urllib3==2.6.3
 uvicorn==0.52.0
 watchfiles==1.2.0
 websockets==16.1.1
+
+chromadb==1.5.9
+onnxruntime==1.32.0
+langgraph==1.2.22
+pytest==9.2.0

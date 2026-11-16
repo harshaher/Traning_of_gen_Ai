@@ -1,0 +1,107 @@
+[
+    {
+        "id": "E01",
+        "question": "How can I list files in Linux?",
+        "expected_command": "ls",
+        "expected_keywords": ["ls", "directory", "list"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E02",
+        "question": "How can I search for a pattern inside files?",
+        "expected_command": "grep",
+        "expected_keywords": ["grep", "pattern", "search"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E03",
+        "question": "How can I display hidden files?",
+        "expected_command": "ls -a",
+        "expected_keywords": ["ls", "-a", "hidden"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E04",
+        "question": "How can I search for an exact string in a file?",
+        "expected_command": "grep -F",
+        "expected_keywords": ["grep", "-F", "exact", "fixed"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E05",
+        "question": "How can I list files in long format?",
+        "expected_command": "ls -l",
+        "expected_keywords": ["ls", "-l", "long", "permissions"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E06",
+        "question": "Why is our company VPN slow from the Hinjewadi office today?",
+        "expected_command": "None",
+        "expected_keywords": ["don't know", "not in dataset", "unsupported"],
+        "category": "Out-of-Scope"
+    },
+    {
+        "id": "E07",
+        "question": "How can I search inside files recursively?",
+        "expected_command": "grep -r",
+        "expected_keywords": ["grep", "-r", "recursive"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E08",
+        "question": "How can I create a compressed archive?",
+        "expected_command": "tar -czvf",
+        "expected_keywords": ["tar", "-czvf", "create", "compressed"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E09",
+        "question": "How can I extract an archive into a target directory?",
+        "expected_command": "tar -xvf -C",
+        "expected_keywords": ["tar", "-xvf", "-C", "extract"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E10",
+        "question": "How can I list the contents of a tar archive?",
+        "expected_command": "tar -tvf",
+        "expected_keywords": ["tar", "-tvf", "list", "contents"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E11",
+        "question": "How do I check available disk space in human readable format?",
+        "expected_command": "df -h",
+        "expected_keywords": ["df", "-h", "disk"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E12",
+        "question": "How can I copy a directory recursively in Linux?",
+        "expected_command": "cp -r",
+        "expected_keywords": ["cp", "-r", "directory"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E13",
+        "question": "How do I view system log messages in real time?",
+        "expected_command": "journalctl -f",
+        "expected_keywords": ["journalctl", "-f", "logs"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E14",
+        "question": "How do I find files by name in a directory tree?",
+        "expected_command": "find",
+        "expected_keywords": ["find", "-name"],
+        "category": "In-Scope"
+    },
+    {
+        "id": "E15",
+        "question": "How do I terminate a process by process ID?",
+        "expected_command": "kill",
+        "expected_keywords": ["kill", "process", "pid"],
+        "category": "In-Scope"
+    }
+]
