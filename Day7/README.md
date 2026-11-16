@@ -43,8 +43,8 @@ Day 7 upgrades ShellSathi from keyword/exact matching and raw LLM prompting to a
     - **`title`**: Specific human-readable operation task (e.g. `List all files, including hidden files`).
     - **`chunk_id`**: Deterministic unique chunk identifier.
 - `app/embed.py`:
-  - Generates 384-dimensional dense vector embeddings.
-  - Implements Chroma's `EmbeddingFunction` protocol for direct vector store integration.
+  - Generates 384-dimensional dense vector embeddings using Chroma's official `DefaultEmbeddingFunction` (`all-MiniLM-L6-v2` ONNX model, running 100% locally).
+  - Plugs directly into persistent Chroma vector collections.
   - Computes cosine similarity with L2 normalization.
 - `eval/search_results.md`:
   - Systematic benchmark of all 10 ShellSathi user questions.

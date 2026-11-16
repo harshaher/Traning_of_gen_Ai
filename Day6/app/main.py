@@ -3,8 +3,12 @@ import json
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.smart_search import load_records, search_records
-from app.llm import generate_answer
+try:
+    from app.smart_search import load_records, search_records
+    from app.llm import generate_answer
+except ImportError:
+    from Day6.app.smart_search import load_records, search_records
+    from Day6.app.llm import generate_answer
 
 
 app = FastAPI(
