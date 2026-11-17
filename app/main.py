@@ -221,14 +221,33 @@ def agent_endpoint(request: AgentRequest) -> AgentResponse:
     LangGraph Autonomous Agent endpoint:
       - Classifies intent (chmod tool, RAG inquiry, destructive command).
       - Executes specialized tools without unnecessary calls.
-      - Enforces approval step before destructive operations.
+      - Maintains thread-specific conversation memory.
+      - Enforces approval step for permission conversions and destructive operations.
+      - Resumes interrupted workflow on approval/rejection.
     """
-    agent_output = run_graph(request.question, approved=bool(request.approved))
-    return AgentResponse(
-        question=agent_output["question"],
-        intent=agent_output["intent"],
-        tools_used=agent_output["tools_used"],
-        answer=agent_output["answer"],
-        approval_required=agent_output["approval_required"],
-        sources=agent_output.get("sources", []),
-    )
+    q = (request.question or "").strip()
+    if not q and request.approved is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Either 'question' or an approval decision ('approved') must be provided.",
+        )
+
+    try:
+        agent_output = run_graph(
+            question=q,
+            approved=request.approved,
+            thread_id=request.thread_id or "default_user",
+        )
+        return AgentResponse(
+            answer=agent_output["answer"],
+            tool_used=agent_output.get("tool_used", "none"),
+            approval_required=agent_output.get("approval_required", False),
+            thread_id=agent_output.get("thread_id", request.thread_id or "default_user"),
+            question=agent_output.get("question", q),
+            intent=agent_output.get("intent", "general"),
+            tools_used=agent_output.get("tools_used", []),
+            status=agent_output.get("status", "COMPLETED"),
+            sources=agent_output.get("sources", []),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Agent execution error: {str(exc)}")

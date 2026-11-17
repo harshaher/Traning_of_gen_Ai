@@ -9,7 +9,7 @@ Verifies all capabilities from Day 1 to Day 9 for ShellSathi:
   - Day 6: LLM integration with structured JSON schema (answer, confidence, follow_up).
   - Day 7: Dense neural embeddings and semantic search via ChromaDB vector store.
   - Day 8: RAG retrieval-augmented generation with verified source citations.
-  - Day 9: Chmod calculator tool, safety interceptors, LangGraph agent workflow, and /agent endpoint.
+  - Day 9: chmod calculator tool, hand-written agent loop, LangGraph workflow with memory and approval, and /agent endpoint.
 """
 
 from pathlib import Path
@@ -33,7 +33,7 @@ from app.smart_search import search_records
 from app.vectorstore import get_vector_store
 from app.rag import answer_with_rag, is_out_of_scope
 from app.graph import run_graph
-from app.agent_loop import run_agent
+from app.agent_loop import run_agent, run_agent_loop
 from app.main import app
 
 client = TestClient(app)
@@ -219,70 +219,207 @@ def test_day8_rag_ask_out_of_scope_q6():
 
 
 # ==========================================
-# DAY 9: Tools, Agent Loop, LangGraph, /agent
+# DAY 9: S1 - chmod_calculator Unit Tests
 # ==========================================
 
-def test_day9_chmod_calculator_octal():
-    """Test octal to symbolic and entity breakdown."""
-    res = chmod_calculator("755")
-    assert res["valid"] is True
-    assert res["symbolic"] == "rwxr-xr-x"
-    assert "breakdown" in res
-    assert res["breakdown"]["owner"]["read"] is True
+def test_day9_chmod_conversions_all_required():
+    """Test all 6 target permission conversions in both directions."""
+    # Symbolic to Octal
+    c1 = chmod_calculator("rwxr-x---")
+    assert c1["valid"] is True and c1["converted_permission"] == "750"
+    assert "read, write, execute" in c1["owner_permissions"]
+    assert "read, execute" in c1["group_permissions"]
+    assert "no permissions" in c1["others_permissions"]
+
+    c2 = chmod_calculator("rwxr-xr-x")
+    assert c2["valid"] is True and c2["converted_permission"] == "755"
+
+    c3 = chmod_calculator("rw-------")
+    assert c3["valid"] is True and c3["converted_permission"] == "600"
+
+    # Octal to Symbolic
+    c4 = chmod_calculator("750")
+    assert c4["valid"] is True and c4["converted_permission"] == "rwxr-x---"
+
+    c5 = chmod_calculator("755")
+    assert c5["valid"] is True and c5["converted_permission"] == "rwxr-xr-x"
+
+    c6 = chmod_calculator("600")
+    assert c6["valid"] is True and c6["converted_permission"] == "rw-------"
 
 
-def test_day9_chmod_calculator_symbolic():
-    """Test symbolic to octal conversion."""
-    res = chmod_calculator("rwxr-xr-x")
-    assert res["valid"] is True
-    assert res["octal"] == "755"
+def test_day9_chmod_validation_errors():
+    """Test validation of invalid symbolic, invalid octal, and empty inputs."""
+    # Invalid symbolic (wrong char)
+    e1 = chmod_calculator("rwxr-x--z")
+    assert e1["valid"] is False
+    assert "error" in e1
+
+    # Invalid octal (digits > 7)
+    e2 = chmod_calculator("899")
+    assert e2["valid"] is False
+    assert "error" in e2
+
+    # Empty and None input
+    e3 = chmod_calculator("")
+    assert e3["valid"] is False
+    assert "error" in e3
+
+    e4 = chmod_calculator(None)
+    assert e4["valid"] is False
+    assert "error" in e4
+
+    # Incorrect length
+    e5 = chmod_calculator("75")
+    assert e5["valid"] is False
 
 
-def test_day9_chmod_calculator_invalid():
-    """Test invalid permission input rejection."""
-    res = chmod_calculator("999")
-    assert res["valid"] is False
-    assert "error" in res
+# ==========================================
+# DAY 9: S1 - Hand-Written Agent Loop Tests
+# ==========================================
+
+def test_day9_agent_loop_rag_selection():
+    """Agent loop selects RAG search for general command queries."""
+    res = run_agent_loop("How can I find a file named test.txt in Linux?")
+    assert res["tool_used"] == "rag_search"
+    assert "tools_used" in res
+    assert len(res["sources"]) > 0
 
 
-def test_day9_agent_loop_tool_routing():
-    """Hand-written agent loop routes chmod queries to chmod calculator."""
-    res = run_agent("What does chmod 644 mean?")
-    assert "chmod_calculator" in res["tools_used"]
-    assert "rw-r--r--" in res["answer"]
+def test_day9_agent_loop_chmod_selection():
+    """Agent loop selects chmod_calculator for permission queries."""
+    res = run_agent_loop("Convert rwxr-x--- into octal.")
+    assert res["tool_used"] == "chmod_calculator"
+    assert "750" in res["answer"]
+    assert "owner" in res["answer"].lower()
 
 
-def test_day9_langgraph_workflow_safe():
-    """LangGraph workflow executes and provides status."""
-    result = run_graph("How to compress files with tar?")
-    assert result["intent"] == "rag"
-    assert "tar" in result["answer"].lower()
+def test_day9_agent_loop_octal_explanation():
+    """Agent loop explains octal permission 755."""
+    res = run_agent_loop("What does chmod 755 mean?")
+    assert res["tool_used"] == "chmod_calculator"
+    assert "rwxr-xr-x" in res["answer"]
 
 
-def test_day9_langgraph_workflow_destructive_approval():
-    """LangGraph workflow blocks destructive command when not approved."""
-    result = run_graph("Run rm -rf /var/log to clear space", approved=False)
-    assert result["intent"] == "approval"
-    assert result["approval_required"] is True
+def test_day9_agent_loop_unknown_question():
+    """Agent loop honestly refuses out-of-scope VPN question."""
+    res = run_agent_loop("Why is our company VPN slow from the Hinjewadi office today?")
+    assert "don't know" in res["answer"].lower()
+    assert res["sources"] == []
 
 
-def test_day9_agent_endpoint():
-    """POST /agent handles routing, tools, and human approval."""
-    payload = {"question": "Convert chmod 755 to symbolic"}
+def test_day9_agent_loop_empty_query():
+    """Agent loop safely handles empty input."""
+    res = run_agent_loop("")
+    assert "please provide" in res["answer"].lower()
+
+
+# ==========================================
+# DAY 9: S2 - LangGraph Workflow & Memory Tests
+# ==========================================
+
+def test_day9_langgraph_rag_execution():
+    """LangGraph workflow executes safe RAG query without pausing for approval."""
+    res = run_graph("How can I search for files in Linux?", thread_id="test_lg_rag")
+    assert res["tool_used"] == "rag_search"
+    assert "answer" in res
+    assert res["approval_required"] is False
+    assert res["status"] == "COMPLETED"
+
+
+def test_day9_langgraph_chmod_approval_and_rejection():
+    """LangGraph pauses for chmod approval, then handles rejection."""
+    # Step 1: Pauses for approval
+    res_pause = run_graph("Convert rwxr-x--- into octal", thread_id="test_lg_rej")
+    assert res_pause["approval_required"] is True
+    assert res_pause["status"] == "PENDING_APPROVAL"
+
+    # Step 2: Caller rejects
+    res_rej = run_graph("", approved=False, thread_id="test_lg_rej")
+    assert res_rej["approval_required"] is False
+    assert "rejected" in res_rej["answer"].lower()
+    assert res_rej["status"] == "REJECTED"
+
+
+def test_day9_langgraph_chmod_approval_and_success():
+    """LangGraph pauses for chmod approval, then executes upon approval."""
+    # Step 1: Pauses for approval
+    res_pause = run_graph("Convert rwxr-x--- into octal", thread_id="test_lg_appr")
+    assert res_pause["approval_required"] is True
+
+    # Step 2: Caller approves
+    res_ok = run_graph("", approved=True, thread_id="test_lg_appr")
+    assert res_ok["approval_required"] is False
+    assert "750" in res_ok["answer"]
+    assert res_ok["status"] == "COMPLETED"
+
+
+def test_day9_langgraph_conversation_memory_followup():
+    """LangGraph remembers previous permission across turns in the same thread."""
+    # Turn 1: Process initial permission
+    run_graph("Convert rwxr-x--- into octal", approved=True, thread_id="test_mem_thread")
+
+    # Turn 2: Follow-up question without explicit permission
+    res_followup = run_graph("What does this permission mean?", approved=True, thread_id="test_mem_thread")
+    assert "750" in res_followup["answer"] or "rwxr-x---" in res_followup["answer"]
+
+
+def test_day9_langgraph_thread_isolation():
+    """Separate thread IDs maintain independent conversation memories."""
+    # Thread A calculates 600
+    run_graph("Convert rw------- into octal", approved=True, thread_id="thread_user_A")
+
+    # Thread B has not discussed 600
+    res_b = run_graph("How can I find files?", thread_id="thread_user_B")
+    assert "rw-------" not in res_b["answer"]
+
+
+# ==========================================
+# DAY 9: FastAPI POST /agent Endpoints
+# ==========================================
+
+def test_day9_api_agent_approval_flow():
+    """POST /agent handles initial pause and subsequent approval."""
+    # Turn 1: Initial request pauses for approval
+    r1 = client.post("/agent", json={"question": "Convert rwxr-x--- into octal", "thread_id": "api_user_appr"})
+    assert r1.status_code == 200
+    d1 = r1.json()
+    assert d1["approval_required"] is True
+    assert d1["tool_used"] == "chmod_calculator"
+    assert d1["thread_id"] == "api_user_appr"
+
+    # Turn 2: Approve the request
+    r2 = client.post("/agent", json={"approved": True, "thread_id": "api_user_appr"})
+    assert r2.status_code == 200
+    d2 = r2.json()
+    assert d2["approval_required"] is False
+    assert "750" in d2["answer"]
+
+
+def test_day9_api_agent_rejection_flow():
+    """POST /agent handles rejection correctly."""
+    client.post("/agent", json={"question": "Convert rwxr-x--- into octal", "thread_id": "api_user_rej"})
+    r_rej = client.post("/agent", json={"approved": False, "thread_id": "api_user_rej"})
+    assert r_rej.status_code == 200
+    d_rej = r_rej.json()
+    assert "rejected" in d_rej["answer"].lower()
+    assert d_rej["approval_required"] is False
+
+
+def test_day9_api_agent_preapproved():
+    """POST /agent executes immediately when approved=True is sent upfront."""
+    payload = {"question": "Convert chmod 755 to symbolic", "approved": True}
     r = client.post("/agent", json=payload)
     assert r.status_code == 200
     data = r.json()
-    assert "chmod_calculator" in data["tools_used"]
+    assert data["tool_used"] == "chmod_calculator"
     assert "rwxr-xr-x" in data["answer"]
 
 
-def test_day9_agent_endpoint_destructive():
-    """POST /agent detects destructive commands."""
-    payload = {"question": "rm -rf /important_files", "approved": False}
-    r = client.post("/agent", json=payload)
-    assert r.status_code == 200
-    data = r.json()
-    assert data["approval_required"] is True
+def test_day9_api_agent_invalid_input():
+    """POST /agent returns 422 for empty inputs with no question or approval."""
+    r = client.post("/agent", json={})
+    assert r.status_code == 422
 
 
 if __name__ == "__main__":

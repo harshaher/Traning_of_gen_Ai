@@ -83,14 +83,18 @@ class AskResponse(BaseModel):
 
 
 class AgentRequest(BaseModel):
-    question: str = Field(min_length=1, description="Question or task for the ShellSathi agent")
-    approved: Optional[bool] = Field(default=False, description="User confirmation for destructive commands")
+    question: Optional[str] = Field(default="", description="Question or task for the ShellSathi agent")
+    thread_id: Optional[str] = Field(default="default_user", description="Thread identifier for conversation memory")
+    approved: Optional[bool] = Field(default=None, description="User confirmation (true=approve, false=reject)")
 
 
 class AgentResponse(BaseModel):
-    question: str
-    intent: str
-    tools_used: List[str]
     answer: str
+    tool_used: str
     approval_required: bool
+    thread_id: str
+    question: Optional[str] = ""
+    intent: Optional[str] = "general"
+    tools_used: List[str] = Field(default_factory=list)
+    status: Optional[str] = "COMPLETED"
     sources: List[str] = Field(default_factory=list)

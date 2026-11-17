@@ -1,116 +1,220 @@
 """
 tools.py - ShellSathi Agent Tools: chmod Calculator and Safety Checker (Day 9)
+Provides Linux file permission calculation and destructive command verification.
 """
 
 import re
 from typing import Any, Dict, Optional
 
+# Standard permission maps
+OCTAL_TO_SYM = {
+    0: "---",
+    1: "--x",
+    2: "-w-",
+    3: "-wx",
+    4: "r--",
+    5: "r-x",
+    6: "rw-",
+    7: "rwx",
+}
 
-def chmod_calculator(input_perm: str) -> Dict[str, Any]:
+SYM_TO_OCTAL = {v: k for k, v in OCTAL_TO_SYM.items()}
+
+
+def _describe_permissions(value: int) -> str:
+    """Return beginner-friendly human-readable permission description."""
+    parts = []
+    if value & 4:
+        parts.append("read")
+    if value & 2:
+        parts.append("write")
+    if value & 1:
+        parts.append("execute")
+    return ", ".join(parts) if parts else "no permissions"
+
+
+def chmod_calculator(permission: Any) -> Dict[str, Any]:
     """
-    Complete chmod permission converter and validator:
-      - Converts symbolic to octal (e.g. rwxr-x--- -> 750)
-      - Converts octal to symbolic (e.g. 750 -> rwxr-x---)
-      - Breaks down permissions into Owner, Group, Others
-      - Validates and handles invalid inputs
+    Linux file permission calculator converting in both directions:
+      - Symbolic to Octal (e.g. 'rwxr-x---' -> '750')
+      - Octal to Symbolic (e.g. '750' -> 'rwxr-x---')
+    Returns a structured dictionary with breakdowns and human-readable explanation.
     """
-    raw = str(input_perm).strip()
+    if permission is None:
+        return {
+            "valid": False,
+            "error": "Empty input. Please provide a permission string.",
+            "input_permission": "",
+        }
+
+    raw = str(permission).strip()
     if not raw:
-        return {"valid": False, "error": "Empty permission input."}
+        return {
+            "valid": False,
+            "error": "Empty input. Please provide a permission string.",
+            "input_permission": raw,
+        }
 
-    # Case A: Octal input (3 digits, each 0-7, e.g. 750, 644, 777)
+    # Case 1: Octal input (3 digits between 0 and 7, e.g. 750, 755, 600, 644)
     if re.fullmatch(r"[0-7]{3}", raw):
-        digits = [int(d) for d in raw]
+        d_owner = int(raw[0])
+        d_group = int(raw[1])
+        d_others = int(raw[2])
 
-        def _digit_to_sym(d: int) -> str:
-            r = "r" if (d & 4) else "-"
-            w = "w" if (d & 2) else "-"
-            x = "x" if (d & 1) else "-"
-            return f"{r}{w}{x}"
+        sym_owner = OCTAL_TO_SYM[d_owner]
+        sym_group = OCTAL_TO_SYM[d_group]
+        sym_others = OCTAL_TO_SYM[d_others]
+        symbolic = f"{sym_owner}{sym_group}{sym_others}"
 
-        symbolic = "".join(_digit_to_sym(d) for d in digits)
-        octal = raw
+        owner_desc = _describe_permissions(d_owner)
+        group_desc = _describe_permissions(d_group)
+        others_desc = _describe_permissions(d_others)
 
-        breakdown = {
-            "owner": _explain_digit(digits[0], "Owner (User)"),
-            "group": _explain_digit(digits[1], "Group"),
-            "others": _explain_digit(digits[2], "Others"),
-        }
+        explanation = (
+            f"Octal permission {raw} converts to symbolic '{symbolic}'.\n"
+            f"- Owner: {owner_desc}\n"
+            f"- Group: {group_desc}\n"
+            f"- Others: {others_desc}"
+        )
 
         return {
             "valid": True,
             "input": raw,
+            "input_permission": raw,
             "input_type": "octal",
-            "octal": octal,
+            "converted_permission": symbolic,
+            "octal": raw,
             "symbolic": symbolic,
-            "explanation": f"Octal {octal} corresponds to symbolic '{symbolic}'.",
-            "breakdown": breakdown,
+            "owner_permissions": owner_desc,
+            "group_permissions": group_desc,
+            "others_permissions": others_desc,
+            "explanation": explanation,
+            "breakdown": {
+                "owner": {
+                    "entity": "Owner (User)",
+                    "value": d_owner,
+                    "summary": owner_desc,
+                    "read": bool(d_owner & 4),
+                    "write": bool(d_owner & 2),
+                    "execute": bool(d_owner & 1),
+                },
+                "group": {
+                    "entity": "Group",
+                    "value": d_group,
+                    "summary": group_desc,
+                    "read": bool(d_group & 4),
+                    "write": bool(d_group & 2),
+                    "execute": bool(d_group & 1),
+                },
+                "others": {
+                    "entity": "Others",
+                    "value": d_others,
+                    "summary": others_desc,
+                    "read": bool(d_others & 4),
+                    "write": bool(d_others & 2),
+                    "execute": bool(d_others & 1),
+                },
+            },
         }
 
-    # Case B: Symbolic input (9 characters, only r, w, x, -, e.g. rwxr-x---)
+    # Case 2: Symbolic input (9 characters consisting of r, w, x, -)
     if re.fullmatch(r"[rwx\-]{9}", raw):
-        triplets = [raw[0:3], raw[3:6], raw[6:9]]
+        t_owner = raw[0:3]
+        t_group = raw[3:6]
+        t_others = raw[6:9]
 
-        def _triplet_to_digit(t: str) -> int:
-            val = 0
-            if t[0] == "r":
-                val += 4
-            if t[1] == "w":
-                val += 2
-            if t[2] == "x":
-                val += 1
-            return val
+        def _triplet_value(t: str) -> Optional[int]:
+            r = 4 if t[0] == "r" else (0 if t[0] == "-" else -1)
+            w = 2 if t[1] == "w" else (0 if t[1] == "-" else -1)
+            x = 1 if t[2] == "x" else (0 if t[2] == "-" else -1)
+            if r == -1 or w == -1 or x == -1:
+                return None
+            return r + w + x
 
-        digits = [_triplet_to_digit(t) for t in triplets]
-        octal = "".join(str(d) for d in digits)
-        symbolic = raw
+        d_owner = _triplet_value(t_owner)
+        d_group = _triplet_value(t_group)
+        d_others = _triplet_value(t_others)
 
-        breakdown = {
-            "owner": _explain_digit(digits[0], "Owner (User)"),
-            "group": _explain_digit(digits[1], "Group"),
-            "others": _explain_digit(digits[2], "Others"),
-        }
+        if d_owner is None or d_group is None or d_others is None:
+            return {
+                "valid": False,
+                "error": f"Invalid symbolic triplet format in '{raw}'. Standard positions are r, w, x or -.",
+                "input_permission": raw,
+            }
+
+        octal = f"{d_owner}{d_group}{d_others}"
+        owner_desc = _describe_permissions(d_owner)
+        group_desc = _describe_permissions(d_group)
+        others_desc = _describe_permissions(d_others)
+
+        explanation = (
+            f"Symbolic permission '{raw}' converts to octal {octal}.\n"
+            f"- Owner: {owner_desc}\n"
+            f"- Group: {group_desc}\n"
+            f"- Others: {others_desc}"
+        )
 
         return {
             "valid": True,
             "input": raw,
+            "input_permission": raw,
             "input_type": "symbolic",
+            "converted_permission": octal,
             "octal": octal,
-            "symbolic": symbolic,
-            "explanation": f"Symbolic '{symbolic}' corresponds to octal {octal}.",
-            "breakdown": breakdown,
+            "symbolic": raw,
+            "owner_permissions": owner_desc,
+            "group_permissions": group_desc,
+            "others_permissions": others_desc,
+            "explanation": explanation,
+            "breakdown": {
+                "owner": {
+                    "entity": "Owner (User)",
+                    "value": d_owner,
+                    "summary": owner_desc,
+                    "read": bool(d_owner & 4),
+                    "write": bool(d_owner & 2),
+                    "execute": bool(d_owner & 1),
+                },
+                "group": {
+                    "entity": "Group",
+                    "value": d_group,
+                    "summary": group_desc,
+                    "read": bool(d_group & 4),
+                    "write": bool(d_group & 2),
+                    "execute": bool(d_group & 1),
+                },
+                "others": {
+                    "entity": "Others",
+                    "value": d_others,
+                    "summary": others_desc,
+                    "read": bool(d_others & 4),
+                    "write": bool(d_others & 2),
+                    "execute": bool(d_others & 1),
+                },
+            },
         }
 
-    # Case C: Invalid input
+    # Case 3: Invalid input format
+    if len(raw) == 3 and any(ch not in "01234567" for ch in raw):
+        error_msg = f"Invalid octal permission '{raw}'. Octal digits must be between 0 and 7."
+    elif len(raw) == 9 and any(ch not in "rwx-" for ch in raw):
+        error_msg = f"Invalid symbolic permission '{raw}'. Characters must only be 'r', 'w', 'x', or '-'."
+    elif len(raw) not in (3, 9):
+        error_msg = (
+            f"Invalid permission length ({len(raw)} characters). "
+            "Expected a 3-digit octal (e.g. '750') or a 9-character symbolic string (e.g. 'rwxr-x---')."
+        )
+    else:
+        error_msg = (
+            f"Invalid permission format '{raw}'. "
+            "Please provide a 3-digit octal (000-777) or a 9-character symbolic string."
+        )
+
     return {
         "valid": False,
+        "error": error_msg,
+        "input_permission": raw,
         "input": raw,
-        "error": (
-            f"Invalid permission format '{raw}'. "
-            "Please provide either a 3-digit octal value (e.g. '750', '644') "
-            "or a 9-character symbolic string (e.g. 'rwxr-x---', 'rw-r--r--')."
-        ),
-    }
-
-
-def _explain_digit(d: int, entity: str) -> Dict[str, Any]:
-    """Explain permissions for a single digit (0-7)."""
-    perms = []
-    if d & 4:
-        perms.append("Read (4)")
-    if d & 2:
-        perms.append("Write (2)")
-    if d & 1:
-        perms.append("Execute (1)")
-
-    summary = ", ".join(perms) if perms else "No permissions (0)"
-    return {
-        "entity": entity,
-        "value": d,
-        "summary": summary,
-        "read": bool(d & 4),
-        "write": bool(d & 2),
-        "execute": bool(d & 1),
     }
 
 
