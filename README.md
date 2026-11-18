@@ -1,6 +1,6 @@
 # ShellSathi — Intelligent Linux Command Assistant
 
-ShellSathi is a beginner-friendly, production-ready Linux command assistant developed for students, system administrators, and developers. It unifies command reference management, TF-IDF lexical search, dense neural embeddings in persistent ChromaDB, Retrieval-Augmented Generation (RAG) with source verification, and a stateful LangGraph autonomous agent with conversation memory, human-in-the-loop approvals, and chmod permission calculations.
+ShellSathi is a beginner-friendly, production-ready Linux command assistant developed for students, system administrators, and developers. It unifies command reference management, TF-IDF lexical search, dense neural embeddings in persistent ChromaDB, Retrieval-Augmented Generation (RAG) with source verification, a stateful LangGraph autonomous agent with conversation memory, human-in-the-loop approvals, chmod permission calculations, and an interactive Streamlit chat interface featuring our signature dynamic Linux command placeholder filler and persistent user feedback (Checkpoint 2).
 
 ---
 
@@ -11,35 +11,47 @@ ShellSathi is a beginner-friendly, production-ready Linux command assistant deve
 - **Project ID:** SJ-62
 - **Training Program:** Sanjivani AI Training – AI to GenAI Engineer (Softomatic & Examate)
 - **Project Name:** ShellSathi
+- **Checkpoint:** Checkpoint 2 (Complete Day 1 to Day 10)
 - **Official Data Source:** [tldr-pages](https://github.com/tldr-pages/tldr)
 
 ---
 
-## 2. Project Architecture & Evolution (Day 1 to Day 9)
+## 2. Project Architecture & Evolution (Day 1 to Day 10)
 
 ```text
-                  +----------------------------------------------+
-                  |              User Request / Query            |
-                  +----------------------------------------------+
-                                         |
-                                         v
-                  +----------------------------------------------+
-                  |         FastAPI REST API / Swagger UI        |
-                  +----------------------------------------------+
-                                         |
-         +-------------------------------+-------------------------------+
-         |                               |                               |
-         v                               v                               v
-+------------------+           +------------------+            +-------------------+
-|  TF-IDF Search   |           |  RAG Subsystem   |            |  LangGraph Agent  |
-| (Lexical Search) |           | (Dense Semantic) |            |  (State Machine)  |
-+------------------+           +------------------+            +-------------------+
-         |                               |                               |
-         v                               v                               v
-+------------------+           +------------------+            +-------------------+
-|   records.json   |           | Persistent Chroma|            |  Safety Check &   |
-|   (20 Commands)  |           | (all-MiniLM-L6)  |            |  chmod Calculator |
-+------------------+           +------------------+            +-------------------+
+                  +-------------------------------------------------+
+                  |      Streamlit Web Interface (ui/app.py)        |
+                  |  [Ask (RAG) / Agent (LangGraph) Mode Switcher]  |
+                  +-------------------------------------------------+
+                                           |
+                                           v
+                  +-------------------------------------------------+
+                  |          FastAPI REST API / Swagger UI          |
+                  +-------------------------------------------------+
+                                           |
+         +---------------------------------+---------------------------------+
+         |                                 |                                 |
+         v                                 v                                 v
++------------------+             +--------------------+            +-------------------+
+|  TF-IDF Search   |             |   RAG Subsystem    |            |  LangGraph Agent  |
+| (Lexical Search) |             |  (Dense Semantic)  |            |  (State Machine)  |
++------------------+             +--------------------+            +-------------------+
+         |                                 |                                 |
+         v                                 v                                 v
++------------------+             +--------------------+            +-------------------+
+|   records.json   |             |  Persistent Chroma |            |  Safety Guard &   |
+|   (20 Commands)  |             |  (all-MiniLM-L6)   |            |  chmod Calculator |
++------------------+             +--------------------+            +-------------------+
+                                           |                                 |
+                                           +----------------+----------------+
+                                                            |
+                                                            v
+                                           +---------------------------------+
+                                           |   Interactive Tool Subsystem:   |
+                                           |   • Dynamic Placeholder Filler  |
+                                           |   • Thumbs Up/Down Feedback     |
+                                           |   • Human Safety Approvals      |
+                                           +---------------------------------+
 ```
 
 - **Day 1 & 2:** Interactive CLI menus, 20 Linux command catalog, record search, category aggregation, and safety warnings.
@@ -50,6 +62,7 @@ ShellSathi is a beginner-friendly, production-ready Linux command assistant deve
 - **Day 7:** Dense neural vector embeddings (384 dimensions) using ONNX `all-MiniLM-L6-v2` in a persistent Chroma database (`/search/semantic`).
 - **Day 8:** Complete RAG pipeline (`/ask`) with document chunk context synthesis, verified source citations, and honest refusal for unsupported domains.
 - **Day 9:** LangGraph stateful autonomous agent (`/agent`), conversation memory (`MemorySaver`), human approval step, and bi-directional chmod permission calculator.
+- **Day 10 (Checkpoint 2):** Streamlit chat UI (`ui/app.py`), dual-mode Ask/Agent execution, signature dynamic placeholder filler (`app/placeholder.py`), and persistent user feedback mechanism (`/feedback`).
 
 ---
 
@@ -57,15 +70,19 @@ ShellSathi is a beginner-friendly, production-ready Linux command assistant deve
 
 ```text
 gen_Ai/
-├── README.md                # Comprehensive documentation & Day 9 viva guide
-├── requirements.txt         # Production dependencies (FastAPI, ChromaDB, LangGraph, Pytest)
+├── README.md                # Comprehensive documentation & viva guide (Days 1–10)
+├── requirements.txt         # Production dependencies (FastAPI, ChromaDB, LangGraph, Streamlit, Pytest)
 ├── .gitignore               # Clean exclusions (.env, .venv, pycache, .pytest_cache)
 ├── .env.example             # Safe environment variable template with zero secrets
 │
+├── ui/
+│   └── app.py               # Streamlit web chat UI with mode switcher, citations & filler
+│
 ├── app/
 │   ├── __init__.py          # Application package marker
-│   ├── main.py              # Unified FastAPI application (all endpoints)
+│   ├── main.py              # Unified FastAPI application (all endpoints + /feedback)
 │   ├── models.py            # Dataclasses & Pydantic request/response schemas
+│   ├── placeholder.py       # Signature Feature: dynamic placeholder extraction & command filler
 │   ├── records.py           # 20 Linux commands management & queries
 │   ├── ingest.py            # TLDR page parser & dataset generator
 │   ├── fetch.py             # Official TLDR markdown page fetcher
@@ -82,10 +99,14 @@ gen_Ai/
 ├── data/
 │   ├── raw/                 # Downloaded raw markdown files (ls, grep, tar, chmod)
 │   ├── records.json         # Master dataset of 44 records across 20 Linux commands
+│   ├── feedback.json        # Persistent user feedback records (helpful / not helpful)
 │   └── chroma_db/           # Persistent ChromaDB vector collection storage
 │
 ├── docs/
-│   └── how_llms_work.md     # LLM fundamentals, tokenization, architecture & Q6 guide
+│   ├── how_llms_work.md     # LLM fundamentals, tokenization, architecture & Q6 guide
+│   └── screenshots/
+│       ├── day10_streamlit_ui.png        # Captured running Streamlit UI with health status
+│       └── day10_placeholder_filler.png  # Captured interactive Placeholder Filler widget
 │
 ├── prompts/
 │   ├── system_prompt.txt    # ShellSathi core persona & JSON output instructions
@@ -104,7 +125,8 @@ gen_Ai/
 │   └── explore.py           # Pandas dataset exploration and statistics
 │
 └── tests/
-    └── test_all_days.py     # 26 comprehensive automated unit & integration tests
+    ├── test_day10.py        # Day 10 unit & integration tests (placeholders, feedback, UI)
+    └── test_all_days.py     # 32 comprehensive automated tests verifying Days 1 to 10
 ```
 
 ---
@@ -255,15 +277,111 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/agent" -Method Post -ContentType "
 
 ---
 
-## 8. Verification & Test Suite
+## 8. Day 10: Streamlit UI, Signature Placeholder Filler & Feedback (Checkpoint 2)
 
-Run the full automated test suite verifying all Day 1 to Day 9 features:
+### 1. Architecture & Overview
+Day 10 introduces the complete user-facing Streamlit application (`ui/app.py`), bridging the FastAPI backend, RAG retrieval pipeline, LangGraph autonomous agent, dynamic command customization, and feedback collection into a single, intuitive interface.
+
+```text
++------------------------------------------------------------------------------+
+|                     ShellSathi Streamlit Web UI (ui/app.py)                  |
+|                                                                              |
+|  [Sidebar]                           [Main Chat Pane]                        |
+|  • Mode Switcher (Ask vs Agent)      • Conversation Thread                   |
+|  • Top-K Retrieval Context Slider    • AI Response & Formatting              |
+|  • FastAPI Health Indicator          • Verified Sources / Citations Expander |
+|  • Thread-Isolated Session ID        • 🛠️ Dynamic Placeholder Filler Widget  |
+|  • Clear Chat History Button         • 👍 / 👎 Helpful Feedback Submission   |
++------------------------------------------------------------------------------+
+                                       |
+                     HTTP JSON REST API Requests
+                                       v
++------------------------------------------------------------------------------+
+|                          FastAPI Backend (app/main.py)                       |
+|  • GET  /health          • POST /ask (RAG)          • POST /feedback         |
+|  • POST /agent (Graph)   • GET  /search/semantic    • GET  /feedback         |
++------------------------------------------------------------------------------+
+```
+
+### 2. Dual-Mode Operation
+- **Mode 1: Ask (RAG Retrieval):**
+  Directly invokes `POST /ask`. Retrieves the top-K relevant chunks from persistent ChromaDB, synthesizes an answer strictly grounded in documentation, displays verified source citations, and gracefully declines out-of-scope requests.
+- **Mode 2: Agent (LangGraph Agent):**
+  Directly invokes `POST /agent`. Classifies intent, activates specialized tools (such as the `chmod_calculator`), maintains session memory across conversational turns, and pauses with interactive `✅ Approve` / `❌ Reject` buttons whenever a sensitive permission modification is attempted.
+
+### 3. Signature Feature — Dynamic Placeholder Filler (`app/placeholder.py`)
+Official Linux command documentation (e.g. from TLDR) heavily employs template placeholders such as:
+`tar -czvf {{archive.tar.gz}} {{directory}}` or `cp {{source}} {{destination}}`
+
+ShellSathi automatically detects these tokens and generates an interactive command builder right below the answer:
+1. **Detection:** Regex pattern matching extracts template strings from markdown code fences, inline snippets, or plain text.
+2. **Form Generation:** Renders clean input boxes for each distinct placeholder variable.
+3. **Real-Time Assembly:** Dynamically substitutes values while preserving original syntax, switches, and flag structures.
+4. **Export / Copy:** Instantly renders the customized command inside a standard `bash` code block with one-click copy capability.
+
+### 4. Feedback Mechanism (`/feedback`)
+Each assistant response features interactive **👍 Helpful** and **👎 Not Helpful** buttons:
+- Rating decisions are immediately transmitted to the backend `POST /feedback` endpoint.
+- Feedback records include query text, assistant answer, normalized rating, UTC ISO timestamp, and thread ID.
+- Stored permanently in `data/feedback.json`.
+- Can be audited or monitored anytime via `GET /feedback`.
+
+### 5. Application Screenshots
+
+#### Main Chat Interface with Real-time Backend Health Monitoring:
+![ShellSathi Streamlit UI](docs/screenshots/day10_streamlit_ui.png)
+
+#### Interactive Placeholder Filler & Source Citations in Action:
+![ShellSathi Interactive Placeholder Filler](docs/screenshots/day10_placeholder_filler.png)
+
+---
+
+## 9. How to Run ShellSathi (FastAPI + Streamlit)
+
+### Step 1: Start the FastAPI Backend
+Open PowerShell terminal 1:
+```powershell
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8000
+```
+Verify backend is online at `http://127.0.0.1:8000/docs` or check `/health`.
+
+### Step 2: Start the Streamlit Web Application
+Open PowerShell terminal 2:
+```powershell
+.\.venv\Scripts\Activate.ps1
+streamlit run ui/app.py
+```
+The browser will automatically open `http://localhost:8501`.
+
+---
+
+## 10. Checkpoint 2 Live Demo & Evaluation Guide
+
+Follow this step-by-step checklist during examiner evaluations and live demonstrations:
+
+| Step | Action | Expected Behavior |
+|---|---|---|
+| **1. Healthcheck** | Open Streamlit UI (`http://localhost:8501`) | Sidebar shows green indicator: `● Backend Online (ChromaDB: 44 chunks)`. |
+| **2. Quick Starter / RAG Query** | Select **Ask** mode. Click starter chip or ask: *"How do I extract a tar archive to a specific folder?"* | Assistant retrieves `tar` documentation from ChromaDB, cites `data/raw/tar.md`, and returns `tar -xvf {{archive.tar.gz}} -C {{target_directory}}`. |
+| **3. Placeholder Filler** | Under the answer, expand **🛠️ Interactive Command Builder**. Enter `my_backup.tar.gz` and `/opt/data/`. | The command block instantly updates to `tar -xvf my_backup.tar.gz -C /opt/data/`. |
+| **4. Feedback Rating** | Click **👍 Helpful** below the response. | Status changes to `✅ Thank you! Rated as Helpful 👍`. Stored in `data/feedback.json`. |
+| **5. Agent & Approval** | Switch to **Agent** mode in sidebar. Submit: *"Convert rwxr-x--- into octal"*. | Agent triggers `chmod_calculator`, pauses execution, and prompts: `⚠️ Human Approval Required: Convert 'rwxr-x---' to '750'`. |
+| **6. Confirm Approval** | Click **✅ Approve Action**. | Agent resumes workflow and answers: `The octal permission is 750 (Owner: rwx, Group: r-x, Others: none)`. |
+| **7. Conversation Memory** | In same thread, ask: *"What does this permission mean?"* | Agent recalls `750` from memory without re-asking for the permission code. |
+| **8. Out-of-Scope Boundary** | Ask: *"What is the capital of France?"* | System honestly declines: *"I don't know. I am ShellSathi, an assistant focused on Linux commands."* |
+
+---
+
+## 11. Verification & Test Suite
+
+Run the full automated test suite verifying all Day 1 to Day 10 features:
 
 ```powershell
 .\.venv\Scripts\pytest tests\test_all_days.py -v
 ```
 
-All 26 automated tests pass with a 100% success rate:
+All 32 automated tests pass with a 100% success rate:
 - `test_day2_records_count_and_content`: PASSED
 - `test_day2_record_functions`: PASSED
 - `test_day3_dataclass_models`: PASSED
@@ -290,10 +408,16 @@ All 26 automated tests pass with a 100% success rate:
 - `test_day9_api_agent_rejection_flow`: PASSED
 - `test_day9_api_agent_preapproved`: PASSED
 - `test_day9_api_agent_invalid_input`: PASSED
+- `test_day10_placeholder_detection_and_extraction`: PASSED
+- `test_day10_placeholder_template_parsing`: PASSED
+- `test_day10_placeholder_fill_logic`: PASSED
+- `test_day10_feedback_submission_and_retrieval`: PASSED
+- `test_day10_feedback_validation`: PASSED
+- `test_day10_ui_module_import`: PASSED
 
 ---
 
-## 9. License
+## 12. License
 
 Developed for educational purposes under the Sanjivani AI Training Program.
 Official Linux command documentation provided under open source licenses by [tldr-pages](https://github.com/tldr-pages/tldr).

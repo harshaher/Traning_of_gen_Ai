@@ -34,6 +34,12 @@ from app.vectorstore import get_vector_store
 from app.rag import answer_with_rag, is_out_of_scope
 from app.graph import run_graph
 from app.agent_loop import run_agent, run_agent_loop
+from app.placeholder import (
+    extract_placeholders,
+    find_command_templates,
+    fill_template,
+    has_placeholders,
+)
 from app.main import app
 
 client = TestClient(app)
@@ -420,6 +426,95 @@ def test_day9_api_agent_invalid_input():
     """POST /agent returns 422 for empty inputs with no question or approval."""
     r = client.post("/agent", json={})
     assert r.status_code == 422
+
+
+# ==========================================
+# DAY 10: Streamlit UI, Placeholder Filler & Feedback
+# ==========================================
+
+def test_day10_placeholder_detection_and_extraction():
+    """Verify Day 10 dynamic placeholder detection and extraction."""
+    assert has_placeholders("cp {{source}} {{destination}}") is True
+    assert has_placeholders("ls -la") is False
+
+    placeholders = extract_placeholders("tar -czvf {{archive.tar.gz}} {{directory}} {{archive.tar.gz}}")
+    assert placeholders == ["archive.tar.gz", "directory"]
+
+
+def test_day10_placeholder_template_parsing():
+    """Verify extracting commands from markdown code blocks and inline snippets."""
+    text = (
+        "Run this command:\n"
+        "```bash\n"
+        "grep -rn {{pattern}} {{path/to/dir}}\n"
+        "```\n"
+        "Or use `chmod {{permission}} {{file}}`"
+    )
+    templates = find_command_templates(text)
+    assert len(templates) >= 2
+    assert any("grep -rn {{pattern}}" in t for t in templates)
+    assert any("chmod {{permission}}" in t for t in templates)
+
+
+def test_day10_placeholder_fill_logic():
+    """Verify placeholder replacement logic preserving structure."""
+    template = "cp {{source}} {{destination}}"
+    filled = fill_template(template, {"source": "report.pdf", "destination": "/backups/"})
+    assert filled == "cp report.pdf /backups/"
+
+    # Test unfilled preserved when default_to_placeholder=True
+    partial = fill_template(template, {"source": "data.csv"})
+    assert partial == "cp data.csv {{destination}}"
+
+
+def test_day10_feedback_submission_and_retrieval():
+    """Verify Day 10 feedback recording and retrieval API."""
+    # Submit helpful feedback
+    res_pos = client.post(
+        "/feedback",
+        json={
+            "question": "How do I extract a tar.gz file?",
+            "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+            "rating": "helpful",
+            "thread_id": "all_days_test_user",
+        },
+    )
+    assert res_pos.status_code == 200
+    assert res_pos.json()["status"] == "success"
+
+    # Submit not_helpful feedback
+    res_neg = client.post(
+        "/feedback",
+        json={
+            "question": "Irrelevant query",
+            "answer": "I don't know.",
+            "rating": "not_helpful",
+            "thread_id": "all_days_test_user",
+        },
+    )
+    assert res_neg.status_code == 200
+
+    # Retrieve feedback stats
+    res_get = client.get("/feedback")
+    assert res_get.status_code == 200
+    feed_data = res_get.json()
+    assert feed_data["total"] >= 2
+    assert feed_data["helpful"] >= 1
+    assert feed_data["not_helpful"] >= 1
+
+
+def test_day10_feedback_validation():
+    """Verify 422 error on invalid rating values."""
+    res = client.post("/feedback", json={"question": "q", "answer": "a", "rating": "invalid_val"})
+    assert res.status_code == 422
+
+
+def test_day10_ui_module_import():
+    """Verify ui/app.py can be imported without errors."""
+    import ui.app as streamlit_app
+    assert hasattr(streamlit_app, "check_backend_health")
+    assert hasattr(streamlit_app, "send_ask_request")
+    assert hasattr(streamlit_app, "send_agent_request")
 
 
 if __name__ == "__main__":

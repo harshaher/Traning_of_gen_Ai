@@ -10,6 +10,7 @@ Integrates:
 """
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -19,7 +20,8 @@ from app.models import (
     QuestionRequest, QuestionResponse,
     ChatRequest, ChatResponse,
     AskRequest, AskResponse,
-    AgentRequest, AgentResponse
+    AgentRequest, AgentResponse,
+    FeedbackRequest, FeedbackResponse
 )
 from app.records import load_records, get_by_id
 from app.smart_search import search_records
@@ -251,3 +253,79 @@ def agent_endpoint(request: AgentRequest) -> AgentResponse:
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Agent execution error: {str(exc)}")
+
+
+# --- Day 10: Feedback Persistence Endpoints ---
+
+FEEDBACK_FILE = Path(__file__).resolve().parent.parent / "data" / "feedback.json"
+
+
+def _read_feedback_storage() -> List[Dict[str, Any]]:
+    """Helper to safely read feedback entries from data/feedback.json."""
+    if not FEEDBACK_FILE.exists():
+        return []
+    try:
+        with open(FEEDBACK_FILE, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            return json.loads(content) if content else []
+    except Exception:
+        return []
+
+
+def _write_feedback_storage(entries: List[Dict[str, Any]]) -> None:
+    """Helper to safely write feedback entries to data/feedback.json."""
+    FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+
+
+@app.post("/feedback", response_model=FeedbackResponse, tags=["Feedback"])
+def submit_feedback(feedback: FeedbackRequest) -> FeedbackResponse:
+    """
+    Save user feedback (Helpful / Not Helpful) with timestamp and thread context.
+    Persists data to data/feedback.json.
+    """
+    rating_clean = feedback.rating.strip().lower()
+    if rating_clean not in {"helpful", "not_helpful", "thumbs_up", "thumbs_down"}:
+        raise HTTPException(
+            status_code=422,
+            detail="Rating must be 'helpful' or 'not_helpful'.",
+        )
+
+    # Normalize rating to helpful / not_helpful
+    normalized_rating = "helpful" if rating_clean in {"helpful", "thumbs_up"} else "not_helpful"
+    timestamp = feedback.timestamp or datetime.now(timezone.utc).isoformat()
+
+    entry = {
+        "question": feedback.question,
+        "answer": feedback.answer,
+        "rating": normalized_rating,
+        "timestamp": timestamp,
+        "thread_id": feedback.thread_id,
+    }
+
+    entries = _read_feedback_storage()
+    entries.append(entry)
+    _write_feedback_storage(entries)
+
+    return FeedbackResponse(
+        status="success",
+        message="Feedback recorded successfully.",
+        total_feedback=len(entries),
+    )
+
+
+@app.get("/feedback", tags=["Feedback"])
+def get_feedback() -> Dict[str, Any]:
+    """Retrieve all recorded feedback entries and summary statistics."""
+    entries = _read_feedback_storage()
+    helpful_count = sum(1 for e in entries if e.get("rating") == "helpful")
+    not_helpful_count = sum(1 for e in entries if e.get("rating") == "not_helpful")
+
+    return {
+        "total": len(entries),
+        "helpful": helpful_count,
+        "not_helpful": not_helpful_count,
+        "feedback": entries,
+    }
+

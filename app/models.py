@@ -98,3 +98,19 @@ class AgentResponse(BaseModel):
     tools_used: List[str] = Field(default_factory=list)
     status: Optional[str] = "COMPLETED"
     sources: List[str] = Field(default_factory=list)
+
+
+# --- Day 10: User Feedback Schemas ---
+
+class FeedbackRequest(BaseModel):
+    question: str = Field(min_length=1, description="Question asked by the user")
+    answer: str = Field(description="Answer provided by ShellSathi")
+    rating: str = Field(description="'helpful' (thumbs up) or 'not_helpful' (thumbs down)")
+    timestamp: Optional[str] = Field(default=None, description="ISO timestamp of submission")
+    thread_id: Optional[str] = Field(default=None, description="Session thread identifier")
+
+
+class FeedbackResponse(BaseModel):
+    status: str
+    message: str
+    total_feedback: int

@@ -1,0 +1,72 @@
+[
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-18T16:18:34.435932+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-18T16:18:34.460523+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-18T16:19:10.624160+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-18T16:19:10.642887+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-18T16:19:54.987309+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-18T16:19:55.002133+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-18T16:29:43.942370+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-18T16:29:43.963064+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-18T16:29:48.462343+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-18T16:29:48.493842+00:00",
+    "thread_id": "test_user_stream_2"
+  }
+]
