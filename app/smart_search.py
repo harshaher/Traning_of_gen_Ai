@@ -5,6 +5,7 @@ smart_search.py - TF-IDF and Cosine Similarity Smart Search for ShellSathi
 import math
 import re
 from typing import Any, Dict, List
+
 from app.records import load_records
 
 

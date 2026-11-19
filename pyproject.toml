@@ -1,0 +1,47 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    "data",
+    "docs",
+    "Day1",
+    "Day2",
+    "Day3",
+    "Day4",
+    "Day5",
+    "Day6",
+    "Day7",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # Pyflakes (syntax, unused imports, undefined variables)
+    "W",  # pycodestyle warnings
+    "I",  # isort (import order)
+]
+
+ignore = [
+    "E501",  # line length (long prompts and documentation strings)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Allow module-level imports after sys.path manipulation in scripts, UI and tests
+"ui/*" = ["E402"]
+"tests/*" = ["E402"]
+"analysis/*" = ["E402"]
+"eval/*" = ["E402"]
+"app/agent_loop.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v"

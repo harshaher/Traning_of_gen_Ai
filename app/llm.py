@@ -5,7 +5,7 @@ llm.py - LLM provider wrapper for ShellSathi (Groq, Gemini, and offline student 
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+
 import requests
 from dotenv import load_dotenv
 

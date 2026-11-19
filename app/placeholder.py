@@ -6,8 +6,7 @@ Integrates with TLDR pages, RAG responses, and Streamlit interactive widgets.
 """
 
 import re
-from typing import Dict, List, Optional
-
+from typing import Dict, List
 
 PLACEHOLDER_REGEX = re.compile(r"\{\{([^}]+)\}\}")
 
@@ -22,7 +21,7 @@ def has_placeholders(text: str) -> bool:
 def extract_placeholders(text: str) -> List[str]:
     """
     Extract unique placeholder names from a template or text in order of appearance.
-    
+
     Example:
         >>> extract_placeholders("cp {{source}} {{destination}}")
         ['source', 'destination']
@@ -31,7 +30,7 @@ def extract_placeholders(text: str) -> List[str]:
     """
     if not text:
         return []
-    
+
     matches = PLACEHOLDER_REGEX.findall(text)
     seen = set()
     unique_placeholders = []
@@ -46,7 +45,7 @@ def extract_placeholders(text: str) -> List[str]:
 def find_command_templates(text: str) -> List[str]:
     """
     Locate candidate command lines or code snippets containing placeholders within text.
-    
+
     Scans markdown code blocks, inline backticks, and lines containing '{{'.
     Returns a deduplicated list of template commands.
     """
@@ -105,16 +104,16 @@ def fill_template(
 ) -> str:
     """
     Substitute placeholder tokens with user-supplied values.
-    
+
     Args:
         template: The command string with {{placeholder}} markers.
         values: Mapping from placeholder names to replacement values.
         default_to_placeholder: If True, unfilled placeholders remain as {{name}}.
                                 If False, unfilled placeholders are replaced with empty string.
-                                
+
     Returns:
         The instantiated command string.
-        
+
     Example:
         >>> fill_template("cp {{source}} {{destination}}", {"source": "foo.txt", "destination": "bar.txt"})
         'cp foo.txt bar.txt'

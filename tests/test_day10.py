@@ -5,16 +5,14 @@ test_day10.py - Unit & Integration Tests for Day 10:
   - Streamlit UI Helper integration.
 """
 
-import json
-from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app, FEEDBACK_FILE
+from app.main import app
 from app.placeholder import (
     extract_placeholders,
-    find_command_templates,
     fill_template,
+    find_command_templates,
     has_placeholders,
 )
 
@@ -163,7 +161,7 @@ def test_feedback_get_summary_and_persistence():
 
 def test_ui_app_imports_and_helpers():
     """Verify ui/app.py components and helpers can be imported and executed."""
-    from ui.app import check_backend_health, send_ask_request, send_agent_request
+    from ui.app import check_backend_health, send_agent_request, send_ask_request
 
     # Check health function against mock/client url
     # Note: FastApi test client is in-process, but we can verify the function structure

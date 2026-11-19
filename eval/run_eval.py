@@ -10,15 +10,14 @@ Generates: eval/rag_compare.md
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.vectorstore import get_vector_store
 from app.rag import answer_with_rag
-
+from app.vectorstore import get_vector_store
 
 CONFIGS = {
     "Config 1 (top_k=2, threshold=0.30)": {"top_k": 2, "threshold": 0.30},

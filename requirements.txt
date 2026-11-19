@@ -77,3 +77,5 @@ onnxruntime==1.32.0
 langgraph==1.2.22
 pytest==9.2.0
 streamlit==1.67.0
+pytest-cov==7.1.0
+ruff==0.17.6

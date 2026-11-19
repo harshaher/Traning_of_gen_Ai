@@ -3,7 +3,7 @@ embed.py - Neural dense embeddings and cosine similarity using all-MiniLM-L6-v2
 """
 
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 try:
     import chromadb.utils.embedding_functions as ef

@@ -29,5 +29,9 @@ desktop.ini
 *.log
 *.tmp
 .pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
 
 Day2/Traning_of_gen_Ai/

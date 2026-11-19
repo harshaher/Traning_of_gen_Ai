@@ -14,7 +14,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import requests
 import streamlit as st
@@ -30,8 +30,8 @@ if "app" in sys.modules and not hasattr(sys.modules["app"], "__path__"):
 
 from app.placeholder import (
     extract_placeholders,
-    find_command_templates,
     fill_template,
+    find_command_templates,
     has_placeholders,
 )
 

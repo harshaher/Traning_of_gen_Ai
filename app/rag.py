@@ -2,13 +2,14 @@
 rag.py - Retrieval-Augmented Generation (RAG) for ShellSathi (Day 8)
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from typing import Any, Dict, List
+from typing import Any, Dict
+
 from app.vectorstore import get_vector_store
-from app.llm import generate_answer
 
 # Minimum cosine similarity threshold to consider context valid
 RELEVANCE_THRESHOLD = 0.35

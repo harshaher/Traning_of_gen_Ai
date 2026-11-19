@@ -1,6 +1,6 @@
 # ShellSathi — Intelligent Linux Command Assistant
 
-ShellSathi is a beginner-friendly, production-ready Linux command assistant developed for students, system administrators, and developers. It unifies command reference management, TF-IDF lexical search, dense neural embeddings in persistent ChromaDB, Retrieval-Augmented Generation (RAG) with source verification, a stateful LangGraph autonomous agent with conversation memory, human-in-the-loop approvals, chmod permission calculations, and an interactive Streamlit chat interface featuring our signature dynamic Linux command placeholder filler and persistent user feedback (Checkpoint 2).
+ShellSathi is a beginner-friendly, production-ready Linux command assistant developed for students, system administrators, and developers. It unifies command reference management, TF-IDF lexical search, dense neural embeddings in persistent ChromaDB, Retrieval-Augmented Generation (RAG) with source verification, a stateful LangGraph autonomous agent with conversation memory, human-in-the-loop approvals, chmod permission calculations, an interactive Streamlit chat interface featuring our signature dynamic Linux command placeholder filler, persistent user feedback (Checkpoint 2), a comprehensive Pytest test suite with mock LLM providers, Ruff code quality enforcement, and containerized Docker deployment (Day 11).
 
 ---
 
@@ -11,7 +11,7 @@ ShellSathi is a beginner-friendly, production-ready Linux command assistant deve
 - **Project ID:** SJ-62
 - **Training Program:** Sanjivani AI Training – AI to GenAI Engineer (Softomatic & Examate)
 - **Project Name:** ShellSathi
-- **Checkpoint:** Checkpoint 2 (Complete Day 1 to Day 10)
+- **Checkpoint:** Checkpoint 2 (Complete Day 1 to Day 11)
 - **Official Data Source:** [tldr-pages](https://github.com/tldr-pages/tldr)
 
 ---
@@ -63,6 +63,7 @@ ShellSathi is a beginner-friendly, production-ready Linux command assistant deve
 - **Day 8:** Complete RAG pipeline (`/ask`) with document chunk context synthesis, verified source citations, and honest refusal for unsupported domains.
 - **Day 9:** LangGraph stateful autonomous agent (`/agent`), conversation memory (`MemorySaver`), human approval step, and bi-directional chmod permission calculator.
 - **Day 10 (Checkpoint 2):** Streamlit chat UI (`ui/app.py`), dual-mode Ask/Agent execution, signature dynamic placeholder filler (`app/placeholder.py`), and persistent user feedback mechanism (`/feedback`).
+- **Day 11:** Modular Pytest test suite with mock LLM providers (76 automated tests, 70% coverage), Ruff linting & quality enforcement in `pyproject.toml`, production `Dockerfile`, `.dockerignore`, and `docker-compose.yml` multi-service orchestration.
 
 ---
 
@@ -70,8 +71,12 @@ ShellSathi is a beginner-friendly, production-ready Linux command assistant deve
 
 ```text
 gen_Ai/
-├── README.md                # Comprehensive documentation & viva guide (Days 1–10)
-├── requirements.txt         # Production dependencies (FastAPI, ChromaDB, LangGraph, Streamlit, Pytest)
+├── Dockerfile               # Multi-service production container (FastAPI + Streamlit)
+├── docker-compose.yml       # Orchestrates api (port 8000) & ui (port 8501) services
+├── .dockerignore            # Excludes caches, venvs, git, and local artifacts
+├── pyproject.toml           # Ruff linter rules and pytest configuration
+├── README.md                # Comprehensive documentation & evaluation guide (Days 1–11)
+├── requirements.txt         # Production dependencies (FastAPI, ChromaDB, LangGraph, Streamlit, Pytest, Ruff)
 ├── .gitignore               # Clean exclusions (.env, .venv, pycache, .pytest_cache)
 ├── .env.example             # Safe environment variable template with zero secrets
 │
@@ -125,8 +130,14 @@ gen_Ai/
 │   └── explore.py           # Pandas dataset exploration and statistics
 │
 └── tests/
-    ├── test_day10.py        # Day 10 unit & integration tests (placeholders, feedback, UI)
-    └── test_all_days.py     # 32 comprehensive automated tests verifying Days 1 to 10
+    ├── conftest.py          # Shared pytest fixtures, TestClient & mock LLM providers
+    ├── test_records.py      # S1-A: Record loading, schema integrity & missing data tests
+    ├── test_search.py       # S1-B: TF-IDF lexical & ChromaDB semantic search tests
+    ├── test_api.py          # S1-C & S1-D: /health & /ask with fake LLM + error handling tests
+    ├── test_tools.py        # S1-E: chmod calculator, safety checks & placeholder tests
+    ├── test_agent.py        # S1-E: LangGraph tool selection, approvals & memory tests
+    ├── test_day10.py        # Day 10 UI, placeholder filler & feedback unit tests
+    └── test_all_days.py     # Unified integration regression suite across all 10 days
 ```
 
 ---
@@ -373,51 +384,157 @@ Follow this step-by-step checklist during examiner evaluations and live demonstr
 
 ---
 
-## 11. Verification & Test Suite
+## 11. Run with Docker
 
-Run the full automated test suite verifying all Day 1 to Day 10 features:
+### 1. What is Docker?
+**Docker** is an open platform that packages an application and all its software dependencies (Python runtime, system libraries, configuration files, and third-party packages) into an isolated, lightweight container. This ensures that the application runs identically on any operating system, server, or cloud environment without dependency conflicts.
 
-```powershell
-.\.venv\Scripts\pytest tests\test_all_days.py -v
+### 2. Why ShellSathi Uses Docker
+- **Zero Environment Drift:** Prevents version mismatches between developer workstations (Windows/macOS) and production Linux servers.
+- **Microservices Isolation:** Separates the FastAPI REST API backend from the Streamlit frontend so each service can scale and restart independently.
+- **Turnkey Deployment:** Developers and examiners can run the complete ShellSathi stack with a single command (`docker compose up -d`) without manually setting up Python environments or installing C++ dependencies for ChromaDB/ONNX.
+
+### 3. What Dockerfile Does
+The [Dockerfile](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/Dockerfile) specifies how the container image is constructed:
+- Base image: `python:3.11-slim` (minimalist, secure Debian base).
+- System dependencies: installs `curl` for container health checks.
+- Layer caching: copies `requirements.txt` and runs `pip install` first to avoid rebuilding dependency layers when source code changes.
+- Application assets: packages `app/`, `ui/`, `data/`, `prompts/`, and `eval/`.
+- Exposed ports: declares `8000` (FastAPI) and `8501` (Streamlit).
+- Default command: starts `uvicorn app.main:app --host 0.0.0.0 --port 8000`.
+
+### 4. What .dockerignore Does
+The [.dockerignore](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/.dockerignore) file ensures sensitive or unnecessary files are never sent into the Docker build context:
+- Excludes local virtual environments (`.venv/`, `venv/`).
+- Excludes secrets and credentials (`.env`, `*.env`).
+- Excludes test caches (`.pytest_cache/`, `.ruff_cache/`, `.coverage`).
+- Excludes git history (`.git/`) and daily archive snapshots (`Day1/` to `Day7/`).
+
+### 5. What Docker Compose Does
+The [docker-compose.yml](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/docker-compose.yml) file orchestrates the multi-container application:
+- Defines two interconnected services: `api` (FastAPI backend) and `ui` (Streamlit frontend).
+- Creates an isolated bridge network (`shellsathi-network`) allowing containers to communicate safely.
+- Configures health checks on `api` so `ui` only launches once the backend is verified ready.
+
+### 6. Why API and UI Run as Separate Services
+- **Decoupled Lifecycles:** A crash or re-render in the UI does not interrupt background agent executions or RAG semantic vector queries.
+- **Production Scalability:** In cloud production, the FastAPI API can be horizontally scaled across multiple instances behind a load balancer, while the Streamlit UI runs as a separate frontend pod.
+- **Clear Separation of Concerns:** Streamlit handles user interactions, while FastAPI enforces schema validation, tool safety guardrails, and persistent storage.
+
+### 7. How Containers Communicate (Crucial Networking Detail)
+Inside Docker Compose, containers communicate across the internal Docker bridge network using their **service name**, NOT `127.0.0.1` or `localhost`:
+- **Correct Internal URL:** `http://api:8000`
+- **Incorrect:** `http://127.0.0.1:8000` (would refer to the UI container itself, causing connection failure)
+
+The UI service explicitly injects the environment variable:
+```yaml
+environment:
+  - BACKEND_URL=http://api:8000
+```
+Meanwhile, outside the container, your host machine's browser accesses both services via mapped ports (`http://localhost:8000` and `http://localhost:8501`).
+
+### 8. Exact Docker Commands
+
+#### Build the Docker Images
+```bash
+docker compose build
 ```
 
-All 32 automated tests pass with a 100% success rate:
-- `test_day2_records_count_and_content`: PASSED
-- `test_day2_record_functions`: PASSED
-- `test_day3_dataclass_models`: PASSED
-- `test_day4_smart_search_tfidf`: PASSED
-- `test_day4_fastapi_base_endpoints`: PASSED
-- `test_day5_out_of_scope_boundary`: PASSED
-- `test_day6_chat_endpoint_schema`: PASSED
-- `test_day7_semantic_search`: PASSED
-- `test_day8_rag_ask_in_scope`: PASSED
-- `test_day8_rag_ask_out_of_scope_q6`: PASSED
-- `test_day9_chmod_conversions_all_required`: PASSED
-- `test_day9_chmod_validation_errors`: PASSED
-- `test_day9_agent_loop_rag_selection`: PASSED
-- `test_day9_agent_loop_chmod_selection`: PASSED
-- `test_day9_agent_loop_octal_explanation`: PASSED
-- `test_day9_agent_loop_unknown_question`: PASSED
-- `test_day9_agent_loop_empty_query`: PASSED
-- `test_day9_langgraph_rag_execution`: PASSED
-- `test_day9_langgraph_chmod_approval_and_rejection`: PASSED
-- `test_day9_langgraph_chmod_approval_and_success`: PASSED
-- `test_day9_langgraph_conversation_memory_followup`: PASSED
-- `test_day9_langgraph_thread_isolation`: PASSED
-- `test_day9_api_agent_approval_flow`: PASSED
-- `test_day9_api_agent_rejection_flow`: PASSED
-- `test_day9_api_agent_preapproved`: PASSED
-- `test_day9_api_agent_invalid_input`: PASSED
-- `test_day10_placeholder_detection_and_extraction`: PASSED
-- `test_day10_placeholder_template_parsing`: PASSED
-- `test_day10_placeholder_fill_logic`: PASSED
-- `test_day10_feedback_submission_and_retrieval`: PASSED
-- `test_day10_feedback_validation`: PASSED
-- `test_day10_ui_module_import`: PASSED
+#### Start All Containers in Detached Mode
+```bash
+docker compose up -d
+```
+
+#### Check Container Status and Health
+```bash
+docker compose ps
+```
+
+#### View Live Application Logs
+```bash
+docker compose logs -f
+```
+To view service-specific logs:
+```bash
+docker compose logs api
+docker compose logs ui
+```
+
+#### Stop All Containers
+```bash
+docker compose down
+```
+
+### 9. Application URLs
+- **FastAPI REST API:** [http://localhost:8000](http://localhost:8000)
+- **Interactive Swagger Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **FastAPI Health Endpoint:** [http://localhost:8000/health](http://localhost:8000/health)
+- **Streamlit Web Application:** [http://localhost:8501](http://localhost:8501)
+
+### 10. Docker Troubleshooting Guide
+
+| Issue | Root Cause | Solution |
+|---|---|---|
+| `Port 8000 or 8501 already in use` | A local process (uvicorn/streamlit) is already bound to that port. | Stop local processes (`taskkill /F /IM python.exe` on Windows or check with `Get-NetTCPConnection`). |
+| `Cannot connect to backend at http://127.0.0.1:8000` | Streamlit container attempted to call localhost instead of Docker DNS. | Verify that `BACKEND_URL=http://api:8000` is set in `docker-compose.yml`. |
+| `Healthcheck timeout` | Backend initial ChromaDB indexing took longer than startup window. | The `start_period: 10s` and `retries: 3` ensure the container has sufficient warmup time. |
+| `API keys missing` | Optional real LLM keys for Groq/Gemini were not passed. | Create a `.env` file (based on `.env.example`) or export `GROQ_API_KEY` before running `docker compose up`. |
 
 ---
 
-## 12. License
+## 12. Verification & Test Suite
+
+### Pytest Modular Test Suite
+ShellSathi features a comprehensive, fully offline test suite with **76 automated tests** organized across modular test files in [tests/](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/):
+
+- [tests/conftest.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/conftest.py): Reusable FastAPI TestClient, sample records, and mock LLM providers.
+- [tests/test_records.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_records.py): Record loading, field validations, missing file safety, category aggregations (7 tests).
+- [tests/test_search.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_search.py): TF-IDF smart search, scoring, rank ordering, and ChromaDB vector search (5 tests).
+- [tests/test_api.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_api.py): `/health`, root metadata, `/ask` with mock LLM, LLM error simulation, and input validations (8 tests).
+- [tests/test_tools.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_tools.py): chmod calculator bi-directional conversions, safety checks, placeholder filler (6 tests).
+- [tests/test_agent.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_agent.py): LangGraph intent routing, chmod tool selection, approval workflows, and conversation memory (5 tests).
+- [tests/test_day10.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_day10.py): Streamlit UI helpers, template extraction, and feedback persistence (13 tests).
+- [tests/test_all_days.py](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/tests/test_all_days.py): Full regression verification suite from Day 1 to Day 10 (32 tests).
+
+Run the full automated test suite:
+```powershell
+.\.venv\Scripts\pytest tests\ -v
+```
+
+**Result: 76 passed, 0 failed, 0 skipped (100% success rate)**
+
+### Code Coverage Report
+Run test coverage:
+```powershell
+.\.venv\Scripts\pytest --cov=app --cov-report=term-missing
+```
+
+| Module | Statements | Missing | Coverage |
+|---|---|---|---|
+| `app/models.py` | 46 | 0 | **100%** |
+| `app/records.py` | 46 | 0 | **100%** |
+| `app/smart_search.py` | 46 | 1 | **98%** |
+| `app/tools.py` | 69 | 3 | **96%** |
+| `app/placeholder.py` | 59 | 7 | **88%** |
+| `app/main.py` | 121 | 18 | **85%** |
+| `app/graph.py` | 149 | 25 | **83%** |
+| `app/rag.py` | 36 | 7 | **81%** |
+| `app/agent_loop.py` | 51 | 11 | **78%** |
+| `app/vectorstore.py` | 58 | 18 | **69%** |
+| **TOTAL** | **933** | **282** | **70%** |
+
+### Ruff Linting & Quality Verification
+Ruff is configured in [pyproject.toml](file:///c:/Users/Admin/OneDrive/Desktop/gen_Ai/pyproject.toml) to enforce clean code, import sorting, syntax validation, and undefined variable checks:
+
+```powershell
+.\.venv\Scripts\ruff check .
+```
+
+**Result: All checks passed!**
+
+---
+
+## 13. License
 
 Developed for educational purposes under the Sanjivani AI Training Program.
 Official Linux command documentation provided under open source licenses by [tldr-pages](https://github.com/tldr-pages/tldr).

@@ -2,10 +2,10 @@
 chunking.py - Document chunking preserving source, page, and title metadata
 """
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import json
 import re
+from pathlib import Path
+from typing import List, Optional
 
 from app.models import DocumentChunk
 

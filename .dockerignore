@@ -1,0 +1,52 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python byte-code and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# Testing and coverage caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ruff_cache/
+
+# Git and version control
+.git/
+.gitignore
+
+# Environment variables and secrets
+.env
+*.env
+.env.*
+!.env.example
+
+# Editor and IDE configurations
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Daily training archive snapshots (legacy folders)
+Day1/
+Day2/
+Day3/
+Day4/
+Day5/
+Day6/
+Day7/
+
+# Logs and temporary files
+*.log
+*.tmp
+temp/
+tmp/

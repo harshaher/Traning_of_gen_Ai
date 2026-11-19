@@ -4,6 +4,7 @@ fetch.py - Download official TLDR documentation for ShellSathi
 
 from pathlib import Path
 from typing import List, Optional
+
 import requests
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

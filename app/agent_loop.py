@@ -3,15 +3,16 @@ agent_loop.py - Simple hand-written agent loop for ShellSathi (Day 9)
 Implements tool selection and routing between RAG search and chmod_calculator.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from app.tools import chmod_calculator, check_destructive_command
 from app.rag import answer_with_rag, is_out_of_scope
+from app.tools import check_destructive_command, chmod_calculator
 
 
 def extract_permission(text: str) -> Optional[str]:

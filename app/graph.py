@@ -4,20 +4,21 @@ Includes input, intent detection, RAG search, chmod calculator, approval, and re
 with conversation memory via MemorySaver checkpointer.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import re
 from typing import Any, Dict, List, Optional
+
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 from typing_extensions import TypedDict
 
-from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import interrupt, Command
-
-from app.tools import chmod_calculator, check_destructive_command
 from app.rag import answer_with_rag, is_out_of_scope
+from app.tools import check_destructive_command, chmod_calculator
 
 
 class AgentState(TypedDict, total=False):

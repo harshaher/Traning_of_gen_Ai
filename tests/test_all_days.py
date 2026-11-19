@@ -12,8 +12,8 @@ Verifies all capabilities from Day 1 to Day 9 for ShellSathi:
   - Day 9: chmod calculator tool, hand-written agent loop, LangGraph workflow with memory and approval, and /agent endpoint.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -21,26 +21,25 @@ sys.path.insert(0, str(PROJECT_ROOT))
 import pytest
 from fastapi.testclient import TestClient
 
-from app.models import Record, DocumentChunk
-from app.records import (
-    load_records,
-    get_by_id,
-    search,
-    count_by,
-)
-from app.tools import chmod_calculator, check_destructive_command
-from app.smart_search import search_records
-from app.vectorstore import get_vector_store
-from app.rag import answer_with_rag, is_out_of_scope
+from app.agent_loop import run_agent_loop
 from app.graph import run_graph
-from app.agent_loop import run_agent, run_agent_loop
+from app.main import app
+from app.models import DocumentChunk, Record
 from app.placeholder import (
     extract_placeholders,
-    find_command_templates,
     fill_template,
+    find_command_templates,
     has_placeholders,
 )
-from app.main import app
+from app.rag import is_out_of_scope
+from app.records import (
+    count_by,
+    get_by_id,
+    load_records,
+    search,
+)
+from app.smart_search import search_records
+from app.tools import check_destructive_command, chmod_calculator
 
 client = TestClient(app)
 
