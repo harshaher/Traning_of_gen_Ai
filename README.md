@@ -1,6 +1,8 @@
 # ShellSathi — Intelligent Linux Command Assistant
 
-ShellSathi is a beginner-friendly, production-ready Linux command assistant developed for students, system administrators, and developers. It unifies command reference management, TF-IDF lexical search, dense neural embeddings in persistent ChromaDB, Retrieval-Augmented Generation (RAG) with source verification, a stateful LangGraph autonomous agent with conversation memory, human-in-the-loop approvals, chmod permission calculations, an interactive Streamlit chat interface featuring our signature dynamic Linux command placeholder filler, persistent user feedback (Checkpoint 2), a comprehensive Pytest test suite with mock LLM providers, Ruff code quality enforcement, and containerized Docker deployment (Day 11).
+[![CI](https://github.com/harshaher/Traning_of_gen_Ai/actions/workflows/ci.yml/badge.svg)](https://github.com/harshaher/Traning_of_gen_Ai/actions/workflows/ci.yml)
+
+ShellSathi is a beginner-friendly, production-ready Linux command assistant developed for students, system administrators, and developers. It unifies command reference management, TF-IDF lexical search, dense neural embeddings in persistent ChromaDB, Retrieval-Augmented Generation (RAG) with source verification, a stateful LangGraph autonomous agent with conversation memory, human-in-the-loop approvals, chmod permission calculations, an interactive Streamlit chat interface featuring our signature dynamic Linux command placeholder filler, persistent user feedback (Checkpoint 2), a comprehensive Pytest test suite with mock LLM providers, Ruff code quality enforcement, containerized Docker deployment (Day 11), and automated GitHub Actions CI/CD with cloud deployment blueprint (Day 12).
 
 ---
 
@@ -534,7 +536,175 @@ Ruff is configured in [pyproject.toml](file:///c:/Users/Admin/OneDrive/Desktop/g
 
 ---
 
-## 13. License
+## 13. Day 12 – CI/CD and Deployment
+
+Day 12 introduces a production-grade Continuous Integration and Continuous Deployment (CI/CD) automation pipeline using GitHub Actions, comprehensive workspace hygiene and cleanup, strict Pull Request quality gates, and cloud deployment architecture via Render Blueprints.
+
+### 1. GitHub Actions CI Workflow (`.github/workflows/ci.yml`)
+The CI automation pipeline is configured in [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) and executes automatically on:
+- Every push to the `main` branch.
+- Every Pull Request targeting the `main` branch.
+
+#### Workflow Architecture & Stages:
+```text
+[ Push / Pull Request to main ]
+              │
+              ▼
+   [ GitHub Actions Runner: ubuntu-latest ]
+              │
+              ├── 1. Checkout repository (actions/checkout@v4)
+              ├── 2. Set up Python 3.11 with pip caching (actions/setup-python@v5)
+              ├── 3. Install dependencies from requirements.txt, ruff, pytest
+              ├── 4. Ruff Quality Gate: ruff check .
+              ├── 5. Pytest Quality Gate: pytest -v (76 offline tests, mock LLMs)
+              └── 6. Docker Build Validation: docker build -t shellsathi-api:ci .
+```
+
+### 2. Code Quality & Ruff Linter Gate
+CI runs strict Ruff linting across all project files:
+```bash
+ruff check .
+```
+- Targets Python 3.10+ standard syntax.
+- Enforces strict import ordering (`isort`), Pyflakes syntax checks (`F`), and PEP 8 style validation (`E`, `W`).
+- Prevents unused imports, undefined variables, and formatting degradation before code can merge.
+
+### 3. Automated Pytest Execution
+The test suite executes 76 automated unit, integration, and regression tests:
+```bash
+pytest -v
+```
+- Completely offline: Uses mock and fake LLM providers configured in `tests/conftest.py`.
+- No paid API keys or external services required during CI runs.
+- Covers RAG retrieval, LangGraph agent routing, chmod conversions, placeholder filling, feedback endpoints, and API contracts.
+
+### 4. Container Build Validation
+To prevent containerization drift, CI validates the Docker build on every push:
+```bash
+docker build -t shellsathi-api:ci .
+```
+- Confirms `Dockerfile` builds cleanly on clean Ubuntu runners.
+- Ensures all dependencies, assets, and entry points compile without missing layers.
+
+### 5. Feature Branch and Pull Request Workflow
+Day 12 enforces a professional Git branching strategy:
+1. Feature branch: `feature/day-12-ci-deployment`.
+2. Changes implemented, tested, and pushed to the remote branch.
+3. Pull Request opened against `main`: `Day 12: Add CI/CD, project cleanup and deployment`.
+4. Automated GitHub Actions CI workflow triggers and runs all quality gates.
+5. Merge into `main` is executed only after all checks pass green.
+
+### 6. Clean Day 1 to Day 12 Project Structure
+The repository is structured into an intuitive, modular layout separating core logic, UI, tests, prompts, and infrastructure:
+
+```text
+ShellSathi/
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # Automated GitHub Actions CI pipeline
+├── app/
+│   ├── __init__.py              # Package initializer
+│   ├── main.py                  # FastAPI server with all endpoints (/ask, /agent, /feedback, etc.)
+│   ├── records.py               # In-memory command catalog operations & filters
+│   ├── models.py                # Dataclasses & Pydantic schemas
+│   ├── fetch.py                 # Remote dataset fetcher from tldr-pages
+│   ├── ingest.py                # Markdown parser and structured ingestion
+│   ├── smart_search.py          # TF-IDF lexical search & cosine similarity
+│   ├── chunking.py              # Text chunker with metadata preservation
+│   ├── embed.py                 # Neural dense embedding generation (all-MiniLM-L6-v2)
+│   ├── vectorstore.py           # Persistent ChromaDB collection management
+│   ├── rag.py                   # RAG context retriever & synthesizer
+│   ├── llm.py                   # LLM client abstractions (Groq, Gemini, Fake)
+│   ├── tools.py                 # chmod bi-directional calculator & safety guard
+│   ├── agent_loop.py            # Simple autonomous tool-calling agent
+│   ├── graph.py                 # Stateful LangGraph agent with MemorySaver & approval
+│   └── placeholder.py           # Interactive Linux command placeholder filler
+├── ui/
+│   └── app.py                   # Streamlit interactive chat web application
+├── data/
+│   ├── raw/                     # Original TLDR markdown source files
+│   └── records.json             # Processed catalog of 20 core Linux commands
+├── analysis/
+│   └── explore.py               # Exploratory data analysis on Linux commands
+├── docs/
+│   ├── how_llms_work.md         # Technical architecture documentation
+│   └── screenshots/             # Interface and execution screenshots
+├── prompts/
+│   ├── system_prompt.txt        # System prompt with strict Linux boundaries
+│   └── eval_prompt.txt          # Evaluation prompt template
+├── eval/
+│   ├── baseline_results.json    # Initial search benchmarks
+│   ├── context_results.json     # Context augmentation results
+│   ├── eval_dataset.json        # 10 standard evaluation questions
+│   ├── eval_summary.md          # Comprehensive evaluation report
+│   ├── feedback_log.json        # User ratings and feedback storage
+│   ├── latency_comparison.png   # Latency comparison visual chart
+│   ├── rag_results.json         # RAG evaluation results
+│   ├── run_eval.py              # Benchmark execution script
+│   ├── search_results.md        # Semantic vs lexical comparison
+│   └── vector_benchmark.json    # Vector search benchmark data
+├── tests/
+│   ├── conftest.py              # TestClient & mock LLM fixtures
+│   ├── test_records.py          # Command catalog unit tests
+│   ├── test_search.py           # TF-IDF & Chroma vector search tests
+│   ├── test_api.py              # FastAPI endpoints & validations
+│   ├── test_tools.py            # chmod calculator & safety checks
+│   ├── test_agent.py            # LangGraph agent memory & approval tests
+│   ├── test_day10.py            # UI helpers & placeholder filler tests
+│   └── test_all_days.py         # Full Day 1–10 regression test suite
+├── .dockerignore                 # Docker build exclusions
+├── .env.example                 # Template for API keys and configuration
+├── .gitignore                   # Git exclusions (caches, credentials, venv)
+├── docker-compose.yml           # Multi-container orchestration (FastAPI + Streamlit)
+├── Dockerfile                   # Multi-service production container specification
+├── pyproject.toml               # Tool configuration (Ruff, Pytest)
+├── render.yaml                  # Render Infrastructure-as-Code Blueprint
+├── requirements.txt             # Production and test dependencies
+└── README.md                    # Complete project documentation & CI badge
+```
+
+### 7. Cloud Deployment via Render Blueprint (`render.yaml`)
+ShellSathi is configured for zero-configuration cloud deployment on [Render](https://render.com) using Infrastructure-as-Code:
+- **FastAPI Backend Web Service:** `shellsathi-api`
+  - Docker container built from project `Dockerfile`.
+  - Runs `uvicorn app.main:app --host 0.0.0.0 --port 8000`.
+  - Public health check: `/health` (HTTP 200).
+- **Streamlit Frontend Web Service:** `shellsathi-ui`
+  - Docker container built from project `Dockerfile`.
+  - Runs `streamlit run ui/app.py --server.port 8501 --server.address 0.0.0.0`.
+  - Health check: `/_stcore/health` (HTTP 200).
+  - Automatically configured with `BACKEND_URL` pointing to `shellsathi-api`.
+
+### 8. Live Deployment URLs
+- **Public Streamlit Web Application:** [https://shellsathi-ui.onrender.com](https://shellsathi-ui.onrender.com)
+- **Public FastAPI REST API:** [https://shellsathi-api.onrender.com](https://shellsathi-api.onrender.com)
+- **Public API Health Endpoint:** [https://shellsathi-api.onrender.com/health](https://shellsathi-api.onrender.com/health)
+- **Interactive Swagger Documentation:** [https://shellsathi-api.onrender.com/docs](https://shellsathi-api.onrender.com/docs)
+
+*(Note: In Render free-tier deployments, web services spin down after 15 minutes of inactivity; initial cold starts take approximately 30–50 seconds.)*
+
+### 9. Deployment Instructions (Step-by-Step)
+1. Fork or push this repository to GitHub: `https://github.com/harshaher/Traning_of_gen_Ai.git`.
+2. Sign in to your [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** and select **Blueprint**.
+4. Connect the `harshaher/Traning_of_gen_Ai` repository and select branch `main`.
+5. Render automatically parses [render.yaml](file:///render.yaml) and provisions both `shellsathi-api` and `shellsathi-ui`.
+6. (Optional) In the Render dashboard, navigate to `shellsathi-api > Environment` to configure optional real LLM keys (`GROQ_API_KEY`, `GEMINI_API_KEY`).
+7. Click **Apply**. Both services will build and deploy automatically.
+
+### 10. Runtime Environment Variables
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `PORT` | Auto-set | `8000` (API) / `8501` (UI) | Container listening port |
+| `BACKEND_URL` | No | `http://127.0.0.1:8000` | Target URL used by Streamlit to reach FastAPI |
+| `GROQ_API_KEY` | Optional | *Unset (uses Fake LLM)* | Groq Cloud LLM provider key (`llama-3.3-70b-versatile`) |
+| `GEMINI_API_KEY` | Optional | *Unset (uses Fake LLM)* | Google Gemini LLM provider key (`gemini-2.5-flash`) |
+| `OPENAI_API_KEY` | Optional | *Unset* | OpenAI API provider key |
+
+---
+
+## 14. License
 
 Developed for educational purposes under the Sanjivani AI Training Program.
 Official Linux command documentation provided under open source licenses by [tldr-pages](https://github.com/tldr-pages/tldr).

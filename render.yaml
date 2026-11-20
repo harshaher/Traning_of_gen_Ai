@@ -1,0 +1,54 @@
+# ==============================================================================
+# ShellSathi - Render Infrastructure-as-Code Blueprint (Day 12)
+# ==============================================================================
+# Deploys both the FastAPI backend service and the Streamlit frontend service
+# using containerized Docker environments defined in Dockerfile.
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. ShellSathi FastAPI REST API Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: shellsathi-api
+    env: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: COHERE_API_KEY
+        sync: false
+
+  # ----------------------------------------------------------------------------
+  # 2. ShellSathi Streamlit Interactive Web Interface
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: shellsathi-ui
+    env: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    dockerCommand: streamlit run ui/app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+    plan: free
+    region: oregon
+    healthCheckPath: /_stcore/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8501
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: shellsathi-api
+          property: host
