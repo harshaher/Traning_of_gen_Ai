@@ -35,6 +35,8 @@ jobs:
           ruff check .
 
       - name: Run pytest test suite
+        env:
+          PYTHONPATH: .
         run: |
           pytest -v
 
