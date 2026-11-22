@@ -14,9 +14,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 
+from app.cache import response_cache
 from app.graph import run_graph
+from app.limits import (
+    validate_question_length,
+    validate_retrieval_top_k,
+    validate_upload_file,
+)
 from app.llm import generate_answer
 from app.models import (
     AgentRequest,
@@ -30,6 +36,7 @@ from app.models import (
     QuestionRequest,
     QuestionResponse,
 )
+from app.monitoring import RequestLatencyLoggingMiddleware, track_tokens
 from app.rag import answer_with_rag
 from app.records import get_by_id, load_records
 from app.smart_search import search_records
@@ -37,9 +44,12 @@ from app.vectorstore import get_vector_store
 
 app = FastAPI(
     title="ShellSathi AI API",
-    description="Intelligent Linux Command Assistant - Integrated Platform (Day 1 to Day 9)",
-    version="1.0.0",
+    description="Intelligent Linux Command Assistant - Integrated Platform (Day 1 to Day 13)",
+    version="1.1.0",
 )
+
+# Add request latency and performance logging middleware
+app.add_middleware(RequestLatencyLoggingMiddleware)
 
 
 @app.on_event("startup")
@@ -122,6 +132,7 @@ def search_tfidf(
     limit: int = Query(default=10, ge=1, le=50),
 ) -> Dict[str, Any]:
     """Search records using TF-IDF and cosine similarity."""
+    validate_question_length(q)
     results = search_records(q, limit=limit)
     return {
         "query": q,
@@ -133,6 +144,7 @@ def search_tfidf(
 @app.post("/questions", response_model=QuestionResponse, tags=["Search"])
 def ask_question_keyword(request: QuestionRequest) -> QuestionResponse:
     """Keyword-based search endpoint (Day 4 compatibility)."""
+    validate_question_length(request.question)
     results = search_records(request.question, limit=5)
     answer = (
         "Here are the relevant Linux commands matching your query."
@@ -150,16 +162,28 @@ def ask_question_keyword(request: QuestionRequest) -> QuestionResponse:
 # --- Day 6: LLM Integration ---
 
 @app.post("/chat", response_model=ChatResponse, tags=["Chat"])
-def chat(request: ChatRequest) -> ChatResponse:
+def chat(request: ChatRequest, req: Request, res: Response) -> ChatResponse:
     """
     LLM chat endpoint returning structured JSON:
       - answer: string
       - confidence: float (0.0 to 1.0)
       - follow_up: string
+      - token_usage: dictionary with token metrics
     """
     q = request.question or request.message
     if not q:
         raise HTTPException(status_code=422, detail="Field 'question' or 'message' is required.")
+
+    validate_question_length(q)
+    request_id = getattr(req.state, "request_id", None)
+
+    # Check cache for repeated queries
+    cached = response_cache.get(q, mode="chat")
+    if cached is not None:
+        res.headers["X-Cache"] = "HIT"
+        return ChatResponse(**cached)
+
+    res.headers["X-Cache"] = "MISS"
     try:
         raw_response = generate_answer(q)
         clean = raw_response.strip()
@@ -174,6 +198,15 @@ def chat(request: ChatRequest) -> ChatResponse:
             clean = "\n".join(lines).strip()
 
         data = json.loads(clean)
+        usage = track_tokens(
+            model_name="chat-llm",
+            input_text=q,
+            output_text=raw_response,
+            request_id=request_id,
+        )
+        data["token_usage"] = usage.to_dict()
+
+        response_cache.set(q, data, mode="chat")
         return ChatResponse(**data)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"LLM request error: {exc}")
@@ -190,6 +223,7 @@ def search_semantic(
     Dense semantic search powered by persistent Chroma vector database
     and all-MiniLM-L6-v2 neural embeddings.
     """
+    validate_question_length(q)
     store = get_vector_store()
     results = store.search(q, top_k=limit)
     return {
@@ -202,22 +236,54 @@ def search_semantic(
 # --- Day 8: Complete RAG System ---
 
 @app.post("/ask", response_model=AskResponse, tags=["RAG"])
-def ask_rag(request: AskRequest) -> AskResponse:
+def ask_rag(request: AskRequest, req: Request, res: Response) -> AskResponse:
     """
     Retrieval-Augmented Generation (RAG) endpoint:
+      - Validates input boundaries (length and top_k).
+      - Checks response cache to quickly return cached repeated queries.
       - Retrieves relevant chunks from Chroma.
       - Augments prompt with retrieved documentation context.
-      - Returns answers with source citations.
+      - Tracks input and output token consumption.
+      - Returns answers with source citations and token usage.
       - Honestly replies 'I don't know' for out-of-scope questions (Q6).
     """
+    validate_question_length(request.question)
+    validate_retrieval_top_k(request.top_k)
+
+    request_id = getattr(req.state, "request_id", None)
+
+    # Check cache for repeated query
+    cached = response_cache.get(request.question, top_k=request.top_k)
+    if cached is not None:
+        res.headers["X-Cache"] = "HIT"
+        return AskResponse(**cached)
+
+    res.headers["X-Cache"] = "MISS"
     rag_result = answer_with_rag(request.question, top_k=request.top_k)
-    return AskResponse(
-        question=rag_result["question"],
-        answer=rag_result["answer"],
-        sources=rag_result["sources"],
-        confidence=rag_result["confidence"],
-        context_used=rag_result.get("context_used", []),
+
+    # Track token metrics
+    context_str = " ".join(rag_result.get("context_used", []))
+    input_str = f"{request.question} {context_str}".strip()
+    token_usage = track_tokens(
+        model_name="rag-synthesizer",
+        input_text=input_str,
+        output_text=rag_result["answer"],
+        request_id=request_id,
     )
+
+    result_data = {
+        "question": rag_result["question"],
+        "answer": rag_result["answer"],
+        "sources": rag_result["sources"],
+        "confidence": rag_result["confidence"],
+        "context_used": rag_result.get("context_used", []),
+        "token_usage": token_usage.to_dict(),
+    }
+
+    # Store in cache
+    response_cache.set(request.question, result_data, top_k=request.top_k)
+
+    return AskResponse(**result_data)
 
 
 # --- Day 9: Autonomous Agent with Tools & Approvals ---
@@ -239,6 +305,9 @@ def agent_endpoint(request: AgentRequest) -> AgentResponse:
             detail="Either 'question' or an approval decision ('approved') must be provided.",
         )
 
+    if q:
+        validate_question_length(q)
+
     try:
         agent_output = run_graph(
             question=q,
@@ -258,6 +327,41 @@ def agent_endpoint(request: AgentRequest) -> AgentResponse:
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Agent execution error: {str(exc)}")
+
+
+# --- Production Cache & Document Management Endpoints ---
+
+@app.get("/cache/stats", tags=["System"])
+def cache_stats() -> Dict[str, Any]:
+    """Inspect in-memory response cache status."""
+    return {
+        "cached_entries": response_cache.size(),
+        "max_size": response_cache.max_size,
+        "ttl_seconds": response_cache.ttl_seconds,
+        "mode": "in-memory-lru",
+    }
+
+
+@app.post("/cache/clear", tags=["System"])
+def cache_clear() -> Dict[str, Any]:
+    """Clear all in-memory cache entries."""
+    cleared = response_cache.invalidate()
+    return {"status": "success", "cleared_entries": cleared}
+
+
+@app.post("/documents/validate", tags=["System"])
+def validate_document_upload(
+    filename: str = Query(..., description="Document file name"),
+    size_bytes: int = Query(..., ge=0, description="Document size in bytes"),
+) -> Dict[str, Any]:
+    """Validate document upload against security limits (1 MB limit, .md/.markdown/.txt allowed)."""
+    validate_upload_file(filename, size_bytes)
+    return {
+        "status": "valid",
+        "filename": filename,
+        "size_bytes": size_bytes,
+        "max_allowed_bytes": 1024 * 1024,
+    }
 
 
 # --- Day 10: Feedback Persistence Endpoints ---
