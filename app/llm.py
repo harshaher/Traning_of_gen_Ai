@@ -5,9 +5,12 @@ llm.py - LLM provider wrapper for ShellSathi (Groq, Gemini, and offline student 
 import json
 import os
 from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
 import requests
 from dotenv import load_dotenv
+
+from app.monitoring import TokenUsage, track_tokens
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
@@ -37,8 +40,8 @@ def get_full_prompt(task_id: int = 1) -> str:
     return sys_prompt
 
 
-def ask_groq(question: str, system_prompt: str) -> str:
-    """Send chat request to Groq API."""
+def _ask_groq_with_usage(question: str, system_prompt: str) -> Tuple[str, Optional[Dict[str, Any]]]:
+    """Send chat request to Groq API and capture provider token usage."""
     api_key = os.getenv("GROQ_API_KEY")
     model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
@@ -60,11 +63,18 @@ def ask_groq(question: str, system_prompt: str) -> str:
     )
     response.raise_for_status()
     data = response.json()
-    return data["choices"][0]["message"]["content"]
+    usage = data.get("usage")
+    return data["choices"][0]["message"]["content"], usage
 
 
-def ask_gemini(question: str, system_prompt: str) -> str:
-    """Send chat request to Google Gemini API."""
+def ask_groq(question: str, system_prompt: str) -> str:
+    """Send chat request to Groq API."""
+    content, _ = _ask_groq_with_usage(question, system_prompt)
+    return content
+
+
+def _ask_gemini_with_usage(question: str, system_prompt: str) -> Tuple[str, Optional[Dict[str, Any]]]:
+    """Send chat request to Google Gemini API and capture provider token usage."""
     api_key = os.getenv("GEMINI_API_KEY")
     model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
@@ -83,7 +93,14 @@ def ask_gemini(question: str, system_prompt: str) -> str:
     )
     response.raise_for_status()
     data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+    usage = data.get("usageMetadata")
+    return data["candidates"][0]["content"]["parts"][0]["text"], usage
+
+
+def ask_gemini(question: str, system_prompt: str) -> str:
+    """Send chat request to Google Gemini API."""
+    content, _ = _ask_gemini_with_usage(question, system_prompt)
+    return content
 
 
 def generate_offline_response(question: str) -> str:
@@ -173,23 +190,54 @@ def generate_offline_response(question: str) -> str:
     })
 
 
-def generate_answer(question: str, task_id: int = 1) -> str:
-    """Generate answer using configured provider or offline fallback."""
+def generate_answer_with_usage(
+    question: str, task_id: int = 1, request_id: Optional[str] = None
+) -> Tuple[str, TokenUsage]:
+    """Generate answer and track token usage from provider or offline estimation."""
     provider = os.getenv("LLM_PROVIDER", "groq").strip().lower()
     full_prompt = get_full_prompt(task_id)
+
+    model_name = (
+        os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        if provider == "groq"
+        else os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    )
+    raw_content = ""
+    actual_usage: Optional[Dict[str, Any]] = None
 
     try:
         if provider == "groq":
             api_key = os.getenv("GROQ_API_KEY")
             if not api_key or api_key == "your_groq_api_key_here":
-                return generate_offline_response(question)
-            return ask_groq(question, full_prompt)
+                raw_content = generate_offline_response(question)
+                model_name = "offline-heuristic-engine"
+            else:
+                raw_content, actual_usage = _ask_groq_with_usage(question, full_prompt)
         elif provider == "gemini":
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key or api_key == "your_gemini_api_key_here":
-                return generate_offline_response(question)
-            return ask_gemini(question, full_prompt)
+                raw_content = generate_offline_response(question)
+                model_name = "offline-heuristic-engine"
+            else:
+                raw_content, actual_usage = _ask_gemini_with_usage(question, full_prompt)
         else:
-            return generate_offline_response(question)
+            raw_content = generate_offline_response(question)
+            model_name = "offline-heuristic-engine"
     except Exception:
-        return generate_offline_response(question)
+        raw_content = generate_offline_response(question)
+        model_name = "offline-heuristic-engine"
+
+    usage = track_tokens(
+        model_name=model_name,
+        input_text=f"{full_prompt}\n{question}",
+        output_text=raw_content,
+        actual_usage=actual_usage,
+        request_id=request_id,
+    )
+    return raw_content, usage
+
+
+def generate_answer(question: str, task_id: int = 1) -> str:
+    """Generate answer using configured provider or offline fallback."""
+    content, _ = generate_answer_with_usage(question, task_id=task_id)
+    return content

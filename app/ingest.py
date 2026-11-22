@@ -87,6 +87,13 @@ def ingest_all(raw_dir: Path = RAW_DIR, output_file: Path = DATA_FILE) -> int:
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(merged, f, indent=4)
 
+    # Invalidate response cache to avoid serving stale answers after document update
+    try:
+        from app.cache import response_cache
+        response_cache.invalidate()
+    except Exception:
+        pass
+
     return len(merged)
 
 

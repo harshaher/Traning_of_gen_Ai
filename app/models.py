@@ -68,6 +68,7 @@ class ChatResponse(BaseModel):
     answer: str
     confidence: float = Field(ge=0.0, le=1.0)
     follow_up: str
+    token_usage: Optional[Dict[str, Any]] = Field(default=None, description="LLM token usage statistics")
 
 
 class AskRequest(BaseModel):
@@ -81,6 +82,7 @@ class AskResponse(BaseModel):
     sources: List[str]
     confidence: float
     context_used: List[str] = Field(default_factory=list)
+    token_usage: Optional[Dict[str, Any]] = Field(default=None, description="LLM token usage statistics")
 
 
 class AgentRequest(BaseModel):
