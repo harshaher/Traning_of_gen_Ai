@@ -18,7 +18,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-# Configure production logger
 logger = logging.getLogger("shellsathi.production")
 if not logger.handlers:
     handler = logging.StreamHandler()
@@ -48,7 +47,6 @@ class RequestLatencyLoggingMiddleware(BaseHTTPMiddleware):
         request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:12]
         timestamp = datetime.now(timezone.utc).isoformat()
 
-        # Attach request_id to request state for downstream handlers
         request.state.request_id = request_id
 
         try:
@@ -65,7 +63,6 @@ class RequestLatencyLoggingMiddleware(BaseHTTPMiddleware):
 
         duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
-        # Log performance metric without exposing sensitive payload data
         logger.info(
             f"request_id={request_id} endpoint={request.url.path} "
             f"method={request.method} status={status_code} latency_ms={duration_ms:.2f} "
@@ -77,11 +74,10 @@ class RequestLatencyLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# --- Token Usage Tracking ---
-
 @dataclass
 class TokenUsage:
     """Structure storing token metrics for LLM and RAG interactions."""
+
     input_tokens: int
     output_tokens: int
     total_tokens: int
@@ -103,7 +99,6 @@ def estimate_token_count(text: str) -> int:
     clean = text.strip()
     words = len(clean.split())
     chars = len(clean)
-    # Average of word-based heuristic (words * 1.33) and char-based (chars / 4)
     estimated = max(1, round((words * 1.33 + chars / 4.0) / 2.0))
     return estimated
 
@@ -125,7 +120,11 @@ def track_tokens(
         out = int(actual_usage["completion_tokens"])
         tot = actual_usage.get("total_tokens", inp + out)
         estimated = False
-    elif actual_usage and "promptTokenCount" in actual_usage and "candidatesTokenCount" in actual_usage:
+    elif (
+        actual_usage
+        and "promptTokenCount" in actual_usage
+        and "candidatesTokenCount" in actual_usage
+    ):
         inp = int(actual_usage["promptTokenCount"])
         out = int(actual_usage["candidatesTokenCount"])
         tot = actual_usage.get("totalTokenCount", inp + out)

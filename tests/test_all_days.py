@@ -44,10 +44,6 @@ from app.tools import check_destructive_command, chmod_calculator
 client = TestClient(app)
 
 
-# ==========================================
-# DAY 1 & 2: Command Records & Logic
-# ==========================================
-
 def test_day2_records_count_and_content():
     """Verify that records.json contains at least 20 unique Linux commands."""
     records = load_records()
@@ -76,15 +72,14 @@ def test_day2_record_functions():
 
     safety_destr = check_destructive_command("rm -rf /var/log")
     assert safety_destr["destructive"] is True
-    assert "delete" in safety_destr["warning"].lower() or "destructive" in safety_destr["warning"].lower()
+    assert (
+        "delete" in safety_destr["warning"].lower()
+        or "destructive" in safety_destr["warning"].lower()
+    )
 
     safety_safe = check_destructive_command("ls -la")
     assert safety_safe["destructive"] is False
 
-
-# ==========================================
-# DAY 3: Models & Ingestion
-# ==========================================
 
 def test_day3_dataclass_models():
     """Test Record and DocumentChunk dataclass models."""
@@ -114,16 +109,15 @@ def test_day3_dataclass_models():
     assert cd["metadata"]["title"] == "Find files by name"
 
 
-# ==========================================
-# DAY 4: TF-IDF Search & REST API
-# ==========================================
-
 def test_day4_smart_search_tfidf():
     """Verify TF-IDF search returns relevant results."""
     hits = search_records("search pattern in files", limit=3)
     assert len(hits) > 0
     top_hit = hits[0]
-    assert "grep" in top_hit.get("command", "").lower() or "grep" in top_hit.get("example_task", "").lower()
+    assert (
+        "grep" in top_hit.get("command", "").lower()
+        or "grep" in top_hit.get("example_task", "").lower()
+    )
 
 
 def test_day4_fastapi_base_endpoints():
@@ -152,20 +146,12 @@ def test_day4_fastapi_base_endpoints():
     assert "results" in r.json()
 
 
-# ==========================================
-# DAY 5: Out of Scope & Boundaries
-# ==========================================
-
 def test_day5_out_of_scope_boundary():
     """Verify Q6 (weather / VPN queries) are recognized as out-of-scope."""
     assert is_out_of_scope("What will the weather be tomorrow?") is True
     assert is_out_of_scope("Why is our company VPN slow from the Hinjewadi office today?") is True
     assert is_out_of_scope("How to list files using ls?") is False
 
-
-# ==========================================
-# DAY 6: LLM & Chat Endpoint
-# ==========================================
 
 def test_day6_chat_endpoint_schema():
     """POST /chat must return JSON containing answer, confidence, follow_up."""
@@ -180,10 +166,6 @@ def test_day6_chat_endpoint_schema():
     assert 0.0 <= data["confidence"] <= 1.0
 
 
-# ==========================================
-# DAY 7: Semantic Search & Vectorstore
-# ==========================================
-
 def test_day7_semantic_search():
     """GET /search/semantic?q= must return hits from ChromaDB."""
     r = client.get("/search/semantic?q=list files in long format")
@@ -196,10 +178,6 @@ def test_day7_semantic_search():
     assert "source" in top
     assert "title" in top
 
-
-# ==========================================
-# DAY 8: RAG Endpoint & Retrieval
-# ==========================================
 
 def test_day8_rag_ask_in_scope():
     """POST /ask returns answer with verified source citations."""
@@ -223,13 +201,8 @@ def test_day8_rag_ask_out_of_scope_q6():
     assert data["confidence"] == 0.0
 
 
-# ==========================================
-# DAY 9: S1 - chmod_calculator Unit Tests
-# ==========================================
-
 def test_day9_chmod_conversions_all_required():
     """Test all 6 target permission conversions in both directions."""
-    # Symbolic to Octal
     c1 = chmod_calculator("rwxr-x---")
     assert c1["valid"] is True and c1["converted_permission"] == "750"
     assert "read, write, execute" in c1["owner_permissions"]
@@ -242,7 +215,6 @@ def test_day9_chmod_conversions_all_required():
     c3 = chmod_calculator("rw-------")
     assert c3["valid"] is True and c3["converted_permission"] == "600"
 
-    # Octal to Symbolic
     c4 = chmod_calculator("750")
     assert c4["valid"] is True and c4["converted_permission"] == "rwxr-x---"
 
@@ -255,17 +227,14 @@ def test_day9_chmod_conversions_all_required():
 
 def test_day9_chmod_validation_errors():
     """Test validation of invalid symbolic, invalid octal, and empty inputs."""
-    # Invalid symbolic (wrong char)
     e1 = chmod_calculator("rwxr-x--z")
     assert e1["valid"] is False
     assert "error" in e1
 
-    # Invalid octal (digits > 7)
     e2 = chmod_calculator("899")
     assert e2["valid"] is False
     assert "error" in e2
 
-    # Empty and None input
     e3 = chmod_calculator("")
     assert e3["valid"] is False
     assert "error" in e3
@@ -274,14 +243,9 @@ def test_day9_chmod_validation_errors():
     assert e4["valid"] is False
     assert "error" in e4
 
-    # Incorrect length
     e5 = chmod_calculator("75")
     assert e5["valid"] is False
 
-
-# ==========================================
-# DAY 9: S1 - Hand-Written Agent Loop Tests
-# ==========================================
 
 def test_day9_agent_loop_rag_selection():
     """Agent loop selects RAG search for general command queries."""
@@ -319,10 +283,6 @@ def test_day9_agent_loop_empty_query():
     assert "please provide" in res["answer"].lower()
 
 
-# ==========================================
-# DAY 9: S2 - LangGraph Workflow & Memory Tests
-# ==========================================
-
 def test_day9_langgraph_rag_execution():
     """LangGraph workflow executes safe RAG query without pausing for approval."""
     res = run_graph("How can I search for files in Linux?", thread_id="test_lg_rag")
@@ -334,12 +294,10 @@ def test_day9_langgraph_rag_execution():
 
 def test_day9_langgraph_chmod_approval_and_rejection():
     """LangGraph pauses for chmod approval, then handles rejection."""
-    # Step 1: Pauses for approval
     res_pause = run_graph("Convert rwxr-x--- into octal", thread_id="test_lg_rej")
     assert res_pause["approval_required"] is True
     assert res_pause["status"] == "PENDING_APPROVAL"
 
-    # Step 2: Caller rejects
     res_rej = run_graph("", approved=False, thread_id="test_lg_rej")
     assert res_rej["approval_required"] is False
     assert "rejected" in res_rej["answer"].lower()
@@ -348,11 +306,9 @@ def test_day9_langgraph_chmod_approval_and_rejection():
 
 def test_day9_langgraph_chmod_approval_and_success():
     """LangGraph pauses for chmod approval, then executes upon approval."""
-    # Step 1: Pauses for approval
     res_pause = run_graph("Convert rwxr-x--- into octal", thread_id="test_lg_appr")
     assert res_pause["approval_required"] is True
 
-    # Step 2: Caller approves
     res_ok = run_graph("", approved=True, thread_id="test_lg_appr")
     assert res_ok["approval_required"] is False
     assert "750" in res_ok["answer"]
@@ -361,39 +317,33 @@ def test_day9_langgraph_chmod_approval_and_success():
 
 def test_day9_langgraph_conversation_memory_followup():
     """LangGraph remembers previous permission across turns in the same thread."""
-    # Turn 1: Process initial permission
     run_graph("Convert rwxr-x--- into octal", approved=True, thread_id="test_mem_thread")
 
-    # Turn 2: Follow-up question without explicit permission
-    res_followup = run_graph("What does this permission mean?", approved=True, thread_id="test_mem_thread")
+    res_followup = run_graph(
+        "What does this permission mean?", approved=True, thread_id="test_mem_thread"
+    )
     assert "750" in res_followup["answer"] or "rwxr-x---" in res_followup["answer"]
 
 
 def test_day9_langgraph_thread_isolation():
     """Separate thread IDs maintain independent conversation memories."""
-    # Thread A calculates 600
     run_graph("Convert rw------- into octal", approved=True, thread_id="thread_user_A")
 
-    # Thread B has not discussed 600
     res_b = run_graph("How can I find files?", thread_id="thread_user_B")
     assert "rw-------" not in res_b["answer"]
 
 
-# ==========================================
-# DAY 9: FastAPI POST /agent Endpoints
-# ==========================================
-
 def test_day9_api_agent_approval_flow():
     """POST /agent handles initial pause and subsequent approval."""
-    # Turn 1: Initial request pauses for approval
-    r1 = client.post("/agent", json={"question": "Convert rwxr-x--- into octal", "thread_id": "api_user_appr"})
+    r1 = client.post(
+        "/agent", json={"question": "Convert rwxr-x--- into octal", "thread_id": "api_user_appr"}
+    )
     assert r1.status_code == 200
     d1 = r1.json()
     assert d1["approval_required"] is True
     assert d1["tool_used"] == "chmod_calculator"
     assert d1["thread_id"] == "api_user_appr"
 
-    # Turn 2: Approve the request
     r2 = client.post("/agent", json={"approved": True, "thread_id": "api_user_appr"})
     assert r2.status_code == 200
     d2 = r2.json()
@@ -403,7 +353,9 @@ def test_day9_api_agent_approval_flow():
 
 def test_day9_api_agent_rejection_flow():
     """POST /agent handles rejection correctly."""
-    client.post("/agent", json={"question": "Convert rwxr-x--- into octal", "thread_id": "api_user_rej"})
+    client.post(
+        "/agent", json={"question": "Convert rwxr-x--- into octal", "thread_id": "api_user_rej"}
+    )
     r_rej = client.post("/agent", json={"approved": False, "thread_id": "api_user_rej"})
     assert r_rej.status_code == 200
     d_rej = r_rej.json()
@@ -427,16 +379,14 @@ def test_day9_api_agent_invalid_input():
     assert r.status_code == 422
 
 
-# ==========================================
-# DAY 10: Streamlit UI, Placeholder Filler & Feedback
-# ==========================================
-
 def test_day10_placeholder_detection_and_extraction():
     """Verify Day 10 dynamic placeholder detection and extraction."""
     assert has_placeholders("cp {{source}} {{destination}}") is True
     assert has_placeholders("ls -la") is False
 
-    placeholders = extract_placeholders("tar -czvf {{archive.tar.gz}} {{directory}} {{archive.tar.gz}}")
+    placeholders = extract_placeholders(
+        "tar -czvf {{archive.tar.gz}} {{directory}} {{archive.tar.gz}}"
+    )
     assert placeholders == ["archive.tar.gz", "directory"]
 
 
@@ -461,14 +411,12 @@ def test_day10_placeholder_fill_logic():
     filled = fill_template(template, {"source": "report.pdf", "destination": "/backups/"})
     assert filled == "cp report.pdf /backups/"
 
-    # Test unfilled preserved when default_to_placeholder=True
     partial = fill_template(template, {"source": "data.csv"})
     assert partial == "cp data.csv {{destination}}"
 
 
 def test_day10_feedback_submission_and_retrieval():
     """Verify Day 10 feedback recording and retrieval API."""
-    # Submit helpful feedback
     res_pos = client.post(
         "/feedback",
         json={
@@ -481,7 +429,6 @@ def test_day10_feedback_submission_and_retrieval():
     assert res_pos.status_code == 200
     assert res_pos.json()["status"] == "success"
 
-    # Submit not_helpful feedback
     res_neg = client.post(
         "/feedback",
         json={
@@ -493,7 +440,6 @@ def test_day10_feedback_submission_and_retrieval():
     )
     assert res_neg.status_code == 200
 
-    # Retrieve feedback stats
     res_get = client.get("/feedback")
     assert res_get.status_code == 200
     feed_data = res_get.json()
@@ -511,6 +457,7 @@ def test_day10_feedback_validation():
 def test_day10_ui_module_import():
     """Verify ui/app.py can be imported without errors."""
     import ui.app as streamlit_app
+
     assert hasattr(streamlit_app, "check_backend_health")
     assert hasattr(streamlit_app, "send_ask_request")
     assert hasattr(streamlit_app, "send_agent_request")

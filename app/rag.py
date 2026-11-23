@@ -11,7 +11,6 @@ from typing import Any, Dict
 
 from app.vectorstore import get_vector_store
 
-# Minimum cosine similarity threshold to consider context valid
 RELEVANCE_THRESHOLD = 0.35
 
 
@@ -19,8 +18,18 @@ def is_out_of_scope(question: str) -> bool:
     """Detect queries outside Linux command documentation scope."""
     q_lower = question.lower()
     out_of_scope_keywords = [
-        "vpn", "hinjewadi", "weather", "tomorrow", "rain", "stock", "cricket",
-        "movie", "recipe", "bitcoin", "salary", "president"
+        "vpn",
+        "hinjewadi",
+        "weather",
+        "tomorrow",
+        "rain",
+        "stock",
+        "cricket",
+        "movie",
+        "recipe",
+        "bitcoin",
+        "salary",
+        "president",
     ]
     return any(keyword in q_lower for keyword in out_of_scope_keywords)
 
@@ -48,7 +57,6 @@ def answer_with_rag(
             "context_used": [],
         }
 
-    # Strict rule for Q6 / out-of-scope questions
     if is_out_of_scope(clean_q):
         return {
             "question": clean_q,
@@ -61,7 +69,6 @@ def answer_with_rag(
     store = get_vector_store()
     hits = store.search(clean_q, top_k=top_k)
 
-    # Filter hits by relevance threshold
     valid_hits = [h for h in hits if h.get("score", 0.0) >= relevance_threshold]
 
     if not valid_hits:
@@ -73,17 +80,14 @@ def answer_with_rag(
             "context_used": [],
         }
 
-    # Extract unique source citations
     sources = list(dict.fromkeys(h["source"] for h in valid_hits if h.get("source")))
     context_snippets = [f"[{h['page']}] {h['title']}: {h['text']}" for h in valid_hits]
 
-    # Synthesize answer using the retrieved context
     top_hit = valid_hits[0]
     best_cmd = top_hit.get("page", "")
     best_title = top_hit.get("title", "")
     best_text = top_hit.get("text", "")
 
-    # Clean readable answer formulation
     answer_text = (
         f"Based on the official Linux documentation for '{best_cmd}':\n"
         f"To {best_title.lower()}:\n\n"

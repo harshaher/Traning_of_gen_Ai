@@ -19,10 +19,6 @@ from app.placeholder import (
 client = TestClient(app)
 
 
-# ==========================================
-# Placeholder Filler Unit Tests
-# ==========================================
-
 def test_placeholder_has_placeholders():
     """Verify detection of {{placeholder}} tokens."""
     assert has_placeholders("cp {{source}} {{destination}}") is True
@@ -85,11 +81,9 @@ def test_placeholder_fill_partial_and_default():
     template = "curl -X {{method}} {{url}} -d '{{payload}}'"
     values = {"method": "POST", "url": "https://api.example.com"}
 
-    # Default to placeholder kept
     result = fill_template(template, values, default_to_placeholder=True)
     assert result == "curl -X POST https://api.example.com -d '{{payload}}'"
 
-    # When False, unfilled becomes empty
     result_empty = fill_template(template, values, default_to_placeholder=False)
     assert result_empty == "curl -X POST https://api.example.com -d ''"
 
@@ -98,10 +92,6 @@ def test_placeholder_fill_empty_template():
     """Verify empty template returns empty string."""
     assert fill_template("", {"foo": "bar"}) == ""
 
-
-# ==========================================
-# Feedback API Endpoint Tests
-# ==========================================
 
 def test_feedback_submit_helpful():
     """Verify POST /feedback records a helpful rating."""
@@ -155,16 +145,10 @@ def test_feedback_get_summary_and_persistence():
     assert data["total"] == data["helpful"] + data["not_helpful"]
 
 
-# ==========================================
-# Streamlit UI Helper Tests
-# ==========================================
-
 def test_ui_app_imports_and_helpers():
     """Verify ui/app.py components and helpers can be imported and executed."""
     from ui.app import check_backend_health, send_agent_request, send_ask_request
 
-    # Check health function against mock/client url
-    # Note: FastApi test client is in-process, but we can verify the function structure
     assert callable(check_backend_health)
     assert callable(send_ask_request)
     assert callable(send_agent_request)

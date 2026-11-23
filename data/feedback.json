@@ -26,5 +26,397 @@
     "rating": "not_helpful",
     "timestamp": "2026-11-19T16:46:16.165919+00:00",
     "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:04:49.889960+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:04:49.908875+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:04:58.227423+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:04:58.252961+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:15:37.744200+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:15:37.767012+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:15:42.615262+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:15:42.654703+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:15:59.335484+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:15:59.353052+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:16:04.063291+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:16:04.088290+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:16:21.217119+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:16:21.232819+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:16:26.022712+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:16:26.044063+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:16:41.794566+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:16:41.812446+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:16:46.562234+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:16:46.586098+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:17:03.946562+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:17:03.966136+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:17:08.773753+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:17:08.898794+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:17:26.713591+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:17:26.729620+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:17:31.584948+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:17:31.610430+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:18:41.890579+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:18:41.915242+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:18:48.544209+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:18:48.566779+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:54:45.264711+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:54:45.288008+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T09:54:49.270150+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T09:54:49.294065+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:29:54.705543+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:29:54.715411+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:29:58.700689+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:29:58.713150+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:38:16.321299+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:38:16.334842+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:38:20.625620+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:38:20.638217+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:41:34.742998+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:41:34.759502+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:41:38.844818+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:41:38.864271+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:44:57.745244+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:44:57.753738+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T16:45:02.011381+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T16:45:02.022671+00:00",
+    "thread_id": "test_user_stream_2"
+  },
+  {
+    "question": "How do I extract a tar.gz file?",
+    "answer": "Use `tar -xzvf {{archive.tar.gz}}`",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T17:03:27.258555+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "Irrelevant query",
+    "answer": "I don't know.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T17:03:27.272268+00:00",
+    "thread_id": "all_days_test_user"
+  },
+  {
+    "question": "How do I list hidden files?",
+    "answer": "Use `ls -a` to include directory entries whose names begin with a dot.",
+    "rating": "helpful",
+    "timestamp": "2026-11-23T17:03:31.707818+00:00",
+    "thread_id": "test_user_stream"
+  },
+  {
+    "question": "Tell me a joke",
+    "answer": "I am ShellSathi, a Linux assistant.",
+    "rating": "not_helpful",
+    "timestamp": "2026-11-23T17:03:31.720142+00:00",
+    "thread_id": "test_user_stream_2"
   }
 ]

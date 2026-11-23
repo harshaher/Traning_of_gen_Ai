@@ -65,14 +65,14 @@ def test_chmod_standard_permutations():
 def test_chmod_invalid_permission_inputs():
     """Verify safe error handling for malformed or out-of-range permissions."""
     invalid_cases = [
-        "899",               # Digits > 7
-        "75",                # Only 2 digits
-        "7555",              # 4 digits
-        "invalid",           # Text
-        "rwxr-x--z",         # Invalid character 'z'
-        "rwxr-x",            # Incomplete symbolic (6 chars)
-        "",                  # Empty string
-        None,                # NoneType
+        "899",
+        "75",
+        "7555",
+        "invalid",
+        "rwxr-x--z",
+        "rwxr-x",
+        "",
+        None,
     ]
     for bad_input in invalid_cases:
         res = chmod_calculator(bad_input)
@@ -99,11 +99,9 @@ def test_placeholder_filler_tools():
     placeholders = extract_placeholders(template)
     assert placeholders == ["archive.tar.gz", "target_dir"]
 
-    # Full fill
     filled = fill_template(template, {"archive.tar.gz": "data.tar.gz", "target_dir": "/tmp"})
     assert filled == "tar -xvf data.tar.gz -C /tmp"
 
-    # Extraction from markdown
     doc = "Run command:\n```bash\ncp {{source}} {{destination}}\n```"
     templates = find_command_templates(doc)
     assert len(templates) == 1

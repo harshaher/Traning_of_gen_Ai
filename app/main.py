@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.cache import response_cache
 from app.graph import run_graph
@@ -48,7 +49,13 @@ app = FastAPI(
     version="1.1.0",
 )
 
-# Add request latency and performance logging middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(RequestLatencyLoggingMiddleware)
 
 
@@ -62,8 +69,6 @@ async def startup_event() -> None:
     except Exception as exc:
         print(f"Startup initialization notice: {exc}")
 
-
-# --- System Endpoints ---
 
 @app.get("/", tags=["System"])
 def root() -> Dict[str, Any]:
@@ -95,8 +100,6 @@ def health_check() -> Dict[str, Any]:
         "indexed_chunks": store.count(),
     }
 
-
-# --- Day 2 & Day 4: Records and Smart Search ---
 
 @app.get("/records", tags=["Records"])
 def get_records(
@@ -159,8 +162,6 @@ def ask_question_keyword(request: QuestionRequest) -> QuestionResponse:
     )
 
 
-# --- Day 6: LLM Integration ---
-
 @app.post("/chat", response_model=ChatResponse, tags=["Chat"])
 def chat(request: ChatRequest, req: Request, res: Response) -> ChatResponse:
     """
@@ -177,7 +178,6 @@ def chat(request: ChatRequest, req: Request, res: Response) -> ChatResponse:
     validate_question_length(q)
     request_id = getattr(req.state, "request_id", None)
 
-    # Check cache for repeated queries
     cached = response_cache.get(q, mode="chat")
     if cached is not None:
         res.headers["X-Cache"] = "HIT"
@@ -188,7 +188,6 @@ def chat(request: ChatRequest, req: Request, res: Response) -> ChatResponse:
         raw_response = generate_answer(q)
         clean = raw_response.strip()
 
-        # Strip code fences if present
         if clean.startswith("```"):
             lines = clean.splitlines()
             if lines and lines[0].startswith("```"):
@@ -212,8 +211,6 @@ def chat(request: ChatRequest, req: Request, res: Response) -> ChatResponse:
         raise HTTPException(status_code=502, detail=f"LLM request error: {exc}")
 
 
-# --- Day 7: Vector Semantic Search ---
-
 @app.get("/search/semantic", tags=["Search"])
 def search_semantic(
     q: str = Query(..., min_length=1),
@@ -233,8 +230,6 @@ def search_semantic(
     }
 
 
-# --- Day 8: Complete RAG System ---
-
 @app.post("/ask", response_model=AskResponse, tags=["RAG"])
 def ask_rag(request: AskRequest, req: Request, res: Response) -> AskResponse:
     """
@@ -252,7 +247,6 @@ def ask_rag(request: AskRequest, req: Request, res: Response) -> AskResponse:
 
     request_id = getattr(req.state, "request_id", None)
 
-    # Check cache for repeated query
     cached = response_cache.get(request.question, top_k=request.top_k)
     if cached is not None:
         res.headers["X-Cache"] = "HIT"
@@ -261,7 +255,6 @@ def ask_rag(request: AskRequest, req: Request, res: Response) -> AskResponse:
     res.headers["X-Cache"] = "MISS"
     rag_result = answer_with_rag(request.question, top_k=request.top_k)
 
-    # Track token metrics
     context_str = " ".join(rag_result.get("context_used", []))
     input_str = f"{request.question} {context_str}".strip()
     token_usage = track_tokens(
@@ -280,13 +273,10 @@ def ask_rag(request: AskRequest, req: Request, res: Response) -> AskResponse:
         "token_usage": token_usage.to_dict(),
     }
 
-    # Store in cache
     response_cache.set(request.question, result_data, top_k=request.top_k)
 
     return AskResponse(**result_data)
 
-
-# --- Day 9: Autonomous Agent with Tools & Approvals ---
 
 @app.post("/agent", response_model=AgentResponse, tags=["Agent"])
 def agent_endpoint(request: AgentRequest) -> AgentResponse:
@@ -329,8 +319,6 @@ def agent_endpoint(request: AgentRequest) -> AgentResponse:
         raise HTTPException(status_code=500, detail=f"Agent execution error: {str(exc)}")
 
 
-# --- Production Cache & Document Management Endpoints ---
-
 @app.get("/cache/stats", tags=["System"])
 def cache_stats() -> Dict[str, Any]:
     """Inspect in-memory response cache status."""
@@ -363,8 +351,6 @@ def validate_document_upload(
         "max_allowed_bytes": 1024 * 1024,
     }
 
-
-# --- Day 10: Feedback Persistence Endpoints ---
 
 FEEDBACK_FILE = Path(__file__).resolve().parent.parent / "data" / "feedback.json"
 
@@ -401,7 +387,6 @@ def submit_feedback(feedback: FeedbackRequest) -> FeedbackResponse:
             detail="Rating must be 'helpful' or 'not_helpful'.",
         )
 
-    # Normalize rating to helpful / not_helpful
     normalized_rating = "helpful" if rating_clean in {"helpful", "thumbs_up"} else "not_helpful"
     timestamp = feedback.timestamp or datetime.now(timezone.utc).isoformat()
 
@@ -437,4 +422,3 @@ def get_feedback() -> Dict[str, Any]:
         "not_helpful": not_helpful_count,
         "feedback": entries,
     }
-

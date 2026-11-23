@@ -52,44 +52,41 @@ def evaluate():
             expected_cmd = item["expected_command"]
             category = item["category"]
 
-            # Out of scope query
             if category.lower() == "out-of-scope" or expected_cmd == "None":
                 rag_out = answer_with_rag(question, top_k=k, relevance_threshold=thresh)
                 is_correct = "don't know" in rag_out["answer"].lower()
                 if is_correct:
                     correct_answers += 1
-                per_query_details.append({
-                    "id": qid,
-                    "question": question,
-                    "expected": expected_cmd,
-                    "top_retrieved": "N/A (Out-of-Scope)",
-                    "hit_1": True if is_correct else False,
-                    "hit_3": True if is_correct else False,
-                    "mrr": 1.0 if is_correct else 0.0,
-                    "answer_correct": is_correct,
-                })
+                per_query_details.append(
+                    {
+                        "id": qid,
+                        "question": question,
+                        "expected": expected_cmd,
+                        "top_retrieved": "N/A (Out-of-Scope)",
+                        "hit_1": True if is_correct else False,
+                        "hit_3": True if is_correct else False,
+                        "mrr": 1.0 if is_correct else 0.0,
+                        "answer_correct": is_correct,
+                    }
+                )
                 reciprocal_ranks.append(1.0 if is_correct else 0.0)
                 if is_correct:
                     hits_at_1 += 1
                     hits_at_3 += 1
                 continue
 
-            # In scope queries
             search_hits = store.search(question, top_k=max(k, 3))
             retrieved_pages = [h.get("page", "").lower() for h in search_hits]
 
-            # Check Hit@1
             cmd_base = expected_cmd.split()[0].lower()
             h1 = (cmd_base in retrieved_pages[0]) if retrieved_pages else False
             if h1:
                 hits_at_1 += 1
 
-            # Check Hit@3
             h3 = any(cmd_base in p for p in retrieved_pages[:3])
             if h3:
                 hits_at_3 += 1
 
-            # Reciprocal rank
             rr = 0.0
             for rank, p in enumerate(retrieved_pages, start=1):
                 if cmd_base in p:
@@ -97,7 +94,6 @@ def evaluate():
                     break
             reciprocal_ranks.append(rr)
 
-            # RAG Answer synthesis check
             rag_out = answer_with_rag(question, top_k=k, relevance_threshold=thresh)
             ans = rag_out.get("answer", "")
             ans_correct = cmd_base in ans.lower() or any(
@@ -106,16 +102,18 @@ def evaluate():
             if ans_correct:
                 correct_answers += 1
 
-            per_query_details.append({
-                "id": qid,
-                "question": question,
-                "expected": expected_cmd,
-                "top_retrieved": retrieved_pages[0] if retrieved_pages else "None",
-                "hit_1": h1,
-                "hit_3": h3,
-                "mrr": rr,
-                "answer_correct": ans_correct,
-            })
+            per_query_details.append(
+                {
+                    "id": qid,
+                    "question": question,
+                    "expected": expected_cmd,
+                    "top_retrieved": retrieved_pages[0] if retrieved_pages else "None",
+                    "hit_1": h1,
+                    "hit_3": h3,
+                    "mrr": rr,
+                    "answer_correct": ans_correct,
+                }
+            )
 
         total = len(eval_set)
         results[config_name] = {
@@ -126,7 +124,6 @@ def evaluate():
             "details": per_query_details,
         }
 
-    # Print summary
     print("\n================ RAG BENCHMARK EVALUATION RESULTS ================")
     for name, m in results.items():
         print(f"\n{name}:")
@@ -135,7 +132,6 @@ def evaluate():
         print(f"  Mean Reciprocal Rank (MRR): {m['mrr']:.3f}")
         print(f"  Answer Correctness: {m['correct_rate'] * 100:.1f}%")
 
-    # Generate eval/rag_compare.md
     md_lines = [
         "# ShellSathi - RAG Configuration Comparison & Evaluation",
         "",
@@ -185,21 +181,23 @@ def evaluate():
             f"| {d1['id']} | {d1['question']} | `{d1['expected']}` | `{d1['top_retrieved']}` | {c1_mark} | `{d2['top_retrieved']}` | {c2_mark} |"
         )
 
-    md_lines.extend([
-        "",
-        "---",
-        "",
-        "## 5. Winning Configuration Declaration",
-        "",
-        "**Winner: Configuration 2 (`top_k=4`, `relevance_threshold=0.35`)**",
-        "",
-        "### Rationale:",
-        "1. **Higher Context Coverage**: Retrieving `top_k=4` allows the synthesizer to incorporate auxiliary flags and command usage variants without overflowing the token budget.",
-        "2. **Strict Relevance Filtering**: The `0.35` threshold effectively discards low-similarity noise while keeping relevant command sections.",
-        "3. **Zero Out-of-Scope Hallucinations**: Both configurations successfully identify Q6 (out-of-scope VPN question) and reply with an honest 'I don't know'.",
-        "4. **Production Recommendation**: Configuration 2 is selected as the default RAG setup for ShellSathi Day 8 and Day 9 workflows.",
-        "",
-    ])
+    md_lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 5. Winning Configuration Declaration",
+            "",
+            "**Winner: Configuration 2 (`top_k=4`, `relevance_threshold=0.35`)**",
+            "",
+            "### Rationale:",
+            "1. **Higher Context Coverage**: Retrieving `top_k=4` allows the synthesizer to incorporate auxiliary flags and command usage variants without overflowing the token budget.",
+            "2. **Strict Relevance Filtering**: The `0.35` threshold effectively discards low-similarity noise while keeping relevant command sections.",
+            "3. **Zero Out-of-Scope Hallucinations**: Both configurations successfully identify Q6 (out-of-scope VPN question) and reply with an honest 'I don't know'.",
+            "4. **Production Recommendation**: Configuration 2 is selected as the default RAG setup for ShellSathi Day 8 and Day 9 workflows.",
+            "",
+        ]
+    )
 
     report_path = PROJECT_ROOT / "eval" / "rag_compare.md"
     with open(report_path, "w", encoding="utf-8") as f:

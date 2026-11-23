@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 @dataclass
 class Record:
     """Linux command record representing a command and its example task."""
+
     command: str
     platform: str
     description: str
@@ -25,6 +26,7 @@ class Record:
 @dataclass
 class DocumentChunk:
     """Indexed document chunk for vector similarity search."""
+
     chunk_id: str
     text: str
     source: str
@@ -46,8 +48,6 @@ class DocumentChunk:
         return data
 
 
-# --- Pydantic Schemas for FastAPI Endpoints ---
-
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, description="Linux question")
 
@@ -68,7 +68,9 @@ class ChatResponse(BaseModel):
     answer: str
     confidence: float = Field(ge=0.0, le=1.0)
     follow_up: str
-    token_usage: Optional[Dict[str, Any]] = Field(default=None, description="LLM token usage statistics")
+    token_usage: Optional[Dict[str, Any]] = Field(
+        default=None, description="LLM token usage statistics"
+    )
 
 
 class AskRequest(BaseModel):
@@ -82,13 +84,21 @@ class AskResponse(BaseModel):
     sources: List[str]
     confidence: float
     context_used: List[str] = Field(default_factory=list)
-    token_usage: Optional[Dict[str, Any]] = Field(default=None, description="LLM token usage statistics")
+    token_usage: Optional[Dict[str, Any]] = Field(
+        default=None, description="LLM token usage statistics"
+    )
 
 
 class AgentRequest(BaseModel):
-    question: Optional[str] = Field(default="", description="Question or task for the ShellSathi agent")
-    thread_id: Optional[str] = Field(default="default_user", description="Thread identifier for conversation memory")
-    approved: Optional[bool] = Field(default=None, description="User confirmation (true=approve, false=reject)")
+    question: Optional[str] = Field(
+        default="", description="Question or task for the ShellSathi agent"
+    )
+    thread_id: Optional[str] = Field(
+        default="default_user", description="Thread identifier for conversation memory"
+    )
+    approved: Optional[bool] = Field(
+        default=None, description="User confirmation (true=approve, false=reject)"
+    )
 
 
 class AgentResponse(BaseModel):
@@ -102,8 +112,6 @@ class AgentResponse(BaseModel):
     status: Optional[str] = "COMPLETED"
     sources: List[str] = Field(default_factory=list)
 
-
-# --- Day 10: User Feedback Schemas ---
 
 class FeedbackRequest(BaseModel):
     question: str = Field(min_length=1, description="Question asked by the user")

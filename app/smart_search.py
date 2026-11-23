@@ -34,7 +34,6 @@ def search_records(query: str, limit: int = 10) -> List[Dict[str, Any]]:
     if not q_tokens:
         return []
 
-    # Build corpus tokens
     corpus = []
     doc_freq = {}
     for r in records:
@@ -47,22 +46,19 @@ def search_records(query: str, limit: int = 10) -> List[Dict[str, Any]]:
     num_docs = len(corpus)
     idf = {t: math.log((num_docs + 1) / (df + 1)) + 1.0 for t, df in doc_freq.items()}
 
-    # Query vector
     q_tf = compute_tf(q_tokens)
     q_vec = {t: q_tf[t] * idf.get(t, 1.0) for t in q_tf}
     q_norm = math.sqrt(sum(v * v for v in q_vec.values())) or 1.0
 
     scored = []
-    for idx, (rec, tokens) in enumerate(zip(records, corpus)):
+    for rec, tokens in zip(records, corpus):
         d_tf = compute_tf(tokens)
         d_vec = {t: d_tf[t] * idf.get(t, 1.0) for t in d_tf}
         d_norm = math.sqrt(sum(v * v for v in d_vec.values())) or 1.0
 
-        # Dot product
         dot = sum(q_vec[t] * d_vec.get(t, 0.0) for t in q_vec)
         score = dot / (q_norm * d_norm)
 
-        # Keyword booster on command name
         if rec.get("command", "").lower() in q_tokens:
             score += 0.3
 

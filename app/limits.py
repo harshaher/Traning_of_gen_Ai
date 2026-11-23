@@ -13,11 +13,10 @@ from typing import Set
 
 from fastapi import HTTPException
 
-# Configurable security limits
 MAX_QUESTION_LENGTH: int = int(os.getenv("MAX_QUESTION_LENGTH", "500"))
 MIN_TOP_K: int = int(os.getenv("MIN_TOP_K", "1"))
 MAX_TOP_K: int = int(os.getenv("MAX_TOP_K", "10"))
-MAX_UPLOAD_SIZE_BYTES: int = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(1024 * 1024)))  # 1 MB
+MAX_UPLOAD_SIZE_BYTES: int = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(1024 * 1024)))
 ALLOWED_DOCUMENT_EXTENSIONS: Set[str] = {".md", ".markdown", ".txt"}
 
 

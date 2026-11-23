@@ -44,12 +44,13 @@ def load_records(file_path: Optional[Path | str] = None) -> List[Dict[str, Any]]
     with open(path, "r", encoding="utf-8") as f:
         records = json.load(f)
 
-    # Attach integer 1-based IDs and categories
     for idx, rec in enumerate(records, start=1):
         rec["id"] = idx
         rec["category"] = CATEGORIES.get(rec.get("command", ""), "General Linux")
         if rec.get("command") in DESTRUCTIVE_COMMANDS:
-            rec["safety_warning"] = "Warning: This command can modify, terminate, or delete system data."
+            rec["safety_warning"] = (
+                "Warning: This command can modify, terminate, or delete system data."
+            )
 
     return records
 
@@ -87,7 +88,6 @@ def get_by_id(records: List[Dict[str, Any]], record_id: Any) -> Optional[Dict[st
             if r.get("id") == target_id:
                 return r
 
-    # Also allow lookup by command string name
     cmd_name = str(record_id).lower().strip()
     for r in records:
         if r.get("command", "").lower() == cmd_name:

@@ -32,7 +32,6 @@ def test_agent_graph_approval_pause_and_resume():
     """Verify LangGraph agent approval interruption and resumption workflow."""
     thread_id = "test_agent_day11_user"
 
-    # Step 1: Query triggers approval pause
     res1 = run_graph(
         question="Convert rwxr-x--- into octal",
         thread_id=thread_id,
@@ -41,7 +40,6 @@ def test_agent_graph_approval_pause_and_resume():
     assert res1["approval_required"] is True
     assert res1["tool_used"] == "chmod_calculator"
 
-    # Step 2: Grant approval
     res2 = run_graph(
         question="",
         thread_id=thread_id,
@@ -55,14 +53,12 @@ def test_agent_graph_approval_rejection():
     """Verify that rejecting approval safely terminates the action without execution."""
     thread_id = "test_agent_rej_user"
 
-    # Step 1: Initial query
     run_graph(
         question="Convert 777 to symbolic",
         thread_id=thread_id,
         approved=None,
     )
 
-    # Step 2: User rejects
     res_rej = run_graph(
         question="",
         thread_id=thread_id,
@@ -76,7 +72,6 @@ def test_agent_memory_continuity():
     """Verify that thread memory retains previous context for follow-up questions."""
     thread_id = "test_agent_memory_flow"
 
-    # Turn 1: Process permission with approval
     res1 = run_graph(
         question="Convert 750 to symbolic",
         thread_id=thread_id,
@@ -84,7 +79,6 @@ def test_agent_memory_continuity():
     )
     assert "rwxr-x---" in res1["answer"]
 
-    # Turn 2: Follow-up question referencing the prior permission
     res2 = run_graph(
         question="What does this permission mean?",
         thread_id=thread_id,

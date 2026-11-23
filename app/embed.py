@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 
 try:
     import chromadb.utils.embedding_functions as ef
+
     _default_ef = ef.DefaultEmbeddingFunction()
 except Exception:
     _default_ef = None
@@ -17,6 +18,7 @@ def get_embedding_function():
     global _default_ef
     if _default_ef is None:
         import chromadb.utils.embedding_functions as ef
+
         _default_ef = ef.DefaultEmbeddingFunction()
     return _default_ef
 
@@ -65,14 +67,16 @@ def semantic_search_chunks(query: str, chunks: List[Any], top_k: int = 5) -> Lis
     scored = []
     for chunk, doc_vec in zip(chunks, doc_vectors):
         score = cosine_similarity(query_vector, doc_vec)
-        scored.append({
-            "chunk_id": chunk.chunk_id,
-            "score": score,
-            "source": chunk.source,
-            "page": chunk.page,
-            "title": chunk.title,
-            "text": chunk.text,
-        })
+        scored.append(
+            {
+                "chunk_id": chunk.chunk_id,
+                "score": score,
+                "source": chunk.source,
+                "page": chunk.page,
+                "title": chunk.title,
+                "text": chunk.text,
+            }
+        )
 
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored[:top_k]

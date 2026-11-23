@@ -90,7 +90,6 @@ def test_records_count_by_category():
     assert sum(counts.values()) == len(records)
     assert "Permissions" in counts or "Search & Pattern" in counts
 
-    # Test empty input
     assert count_by([], "category") == {}
 
 

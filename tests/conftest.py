@@ -69,6 +69,7 @@ def mock_llm_ask(monkeypatch: pytest.MonkeyPatch, fake_rag_response: Dict[str, A
     Monkeypatch answer_with_rag in app.main to return a deterministic fake RAG answer.
     Guarantees no real external API calls or API keys are required during testing.
     """
+
     def _fake_answer_with_rag(question: str, top_k: int = 3) -> Dict[str, Any]:
         resp = dict(fake_rag_response)
         resp["question"] = question
@@ -82,6 +83,7 @@ def mock_llm_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Monkeypatch answer_with_rag in app.main to simulate an upstream LLM/provider failure.
     """
+
     def _failing_answer_with_rag(question: str, top_k: int = 3) -> Dict[str, Any]:
         raise RuntimeError("Simulated upstream LLM provider connection error")
 
@@ -93,6 +95,7 @@ def mock_chat_llm(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Monkeypatch generate_answer in app.main for POST /chat tests.
     """
+
     def _fake_generate_answer(prompt: str) -> str:
         return '{"answer": "Use `chmod 755 file`.", "confidence": 0.92, "follow_up": "Do you need symbolic mode?"}'
 

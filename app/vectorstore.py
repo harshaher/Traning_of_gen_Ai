@@ -19,7 +19,9 @@ DEFAULT_COLLECTION = "shellsathi_knowledge"
 class VectorStore:
     """Manages persistent Chroma vector database."""
 
-    def __init__(self, persist_dir: Optional[Path] = None, collection_name: str = DEFAULT_COLLECTION):
+    def __init__(
+        self, persist_dir: Optional[Path] = None, collection_name: str = DEFAULT_COLLECTION
+    ):
         self.persist_dir = persist_dir or DEFAULT_PERSIST_DIR
         self.persist_dir.mkdir(parents=True, exist_ok=True)
         self.collection_name = collection_name
@@ -39,7 +41,9 @@ class VectorStore:
     def count(self) -> int:
         return self.collection.count()
 
-    def index_chunks(self, chunks: Optional[List[DocumentChunk]] = None, force: bool = False) -> int:
+    def index_chunks(
+        self, chunks: Optional[List[DocumentChunk]] = None, force: bool = False
+    ) -> int:
         """Index chunks into persistent collection."""
         curr = self.collection.count()
         if curr > 0 and not force:
@@ -89,16 +93,18 @@ class VectorStore:
 
         for rank, (cid, doc, meta, dist) in enumerate(zip(ids, docs, metas, distances), start=1):
             score = max(0.0, min(1.0, round(1.0 - float(dist), 4)))
-            hits.append({
-                "rank": rank,
-                "chunk_id": cid,
-                "score": score,
-                "distance": round(float(dist), 4),
-                "source": meta.get("source", ""),
-                "page": meta.get("page", ""),
-                "title": meta.get("title", ""),
-                "text": doc,
-            })
+            hits.append(
+                {
+                    "rank": rank,
+                    "chunk_id": cid,
+                    "score": score,
+                    "distance": round(float(dist), 4),
+                    "source": meta.get("source", ""),
+                    "page": meta.get("page", ""),
+                    "title": meta.get("title", ""),
+                    "text": doc,
+                }
+            )
 
         return hits
 

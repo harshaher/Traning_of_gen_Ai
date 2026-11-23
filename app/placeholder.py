@@ -57,16 +57,13 @@ def find_command_templates(text: str) -> List[str]:
 
     def add_candidate(cmd: str) -> None:
         cmd_clean = cmd.strip()
-        # Remove surrounding backticks if present
         if cmd_clean.startswith("`") and cmd_clean.endswith("`"):
             cmd_clean = cmd_clean.strip("`").strip()
-        # Remove leading markdown bullet or quote markers
         cmd_clean = re.sub(r"^[-*>\d.]+\s*", "", cmd_clean).strip()
         if cmd_clean and has_placeholders(cmd_clean) and cmd_clean not in seen:
             seen.add(cmd_clean)
             templates.append(cmd_clean)
 
-    # 1. Check fenced code blocks (``` ... ```)
     fenced_blocks = re.findall(
         r"```(?:[a-zA-Z0-9_-]+)?\s*[\r\n]+(.*?)\s*```",
         text,
@@ -78,16 +75,13 @@ def find_command_templates(text: str) -> List[str]:
             if has_placeholders(line_str) and not line_str.startswith("#"):
                 add_candidate(line_str)
 
-    # 2. Strip fenced blocks so inline code matcher does not confuse triple backticks
     text_without_fences = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
 
-    # 3. Check inline code spans (`command {{arg}}`)
     inline_codes = re.findall(r"`([^`\r\n]+)`", text_without_fences)
     for inline in inline_codes:
         if has_placeholders(inline):
             add_candidate(inline)
 
-    # 4. Check raw lines if no code blocks/spans contained templates
     if not templates:
         for line in text.splitlines():
             line_str = line.strip()

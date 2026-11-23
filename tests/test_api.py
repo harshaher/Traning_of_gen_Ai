@@ -49,7 +49,6 @@ def test_api_ask_with_fake_llm(client: TestClient, mock_llm_ask):
     assert response.status_code == 200
     data = response.json()
 
-    # Verify response structure
     assert data["question"] == "How do I extract a tar archive?"
     assert "answer" in data
     assert "tar -xvf" in data["answer"]
@@ -68,10 +67,8 @@ def test_api_ask_llm_error_handling(client: TestClient, mock_llm_error):
     payload = {"question": "How to extract archive?", "top_k": 3}
     try:
         response = client.post("/ask", json=payload)
-        # Server should either handle gracefully with 500 or fallback response
         assert response.status_code in {500, 502, 200}
     except Exception as exc:
-        # If uncaught, it must be the expected simulated RuntimeError
         assert "Simulated upstream LLM provider connection error" in str(exc)
 
 
@@ -79,15 +76,12 @@ def test_api_ask_missing_and_invalid_payload(client: TestClient):
     """
     Verify that empty requests or invalid parameters trigger HTTP 422 Unprocessable Entity.
     """
-    # Empty payload
     res_empty = client.post("/ask", json={})
     assert res_empty.status_code == 422
 
-    # Empty string question (min_length=1 in AskRequest)
     res_blank = client.post("/ask", json={"question": ""})
     assert res_blank.status_code == 422
 
-    # Invalid top_k (must be <= 10)
     res_invalid_k = client.post("/ask", json={"question": "valid question", "top_k": 999})
     assert res_invalid_k.status_code == 422
 
@@ -110,19 +104,16 @@ def test_api_chat_with_mock_llm(client: TestClient, mock_chat_llm):
 
 def test_api_records_endpoints(client: TestClient):
     """Verify GET /records and GET /records/{id} endpoints."""
-    # List records
     res_list = client.get("/records?limit=5")
     assert res_list.status_code == 200
     list_data = res_list.json()
     assert list_data["total"] >= 20
     assert len(list_data["records"]) == 5
 
-    # Single valid record
     res_single = client.get("/records/1")
     assert res_single.status_code == 200
     assert res_single.json()["id"] == 1
 
-    # Nonexistent record -> 404
     res_missing = client.get("/records/999999")
     assert res_missing.status_code == 404
 

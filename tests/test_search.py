@@ -38,7 +38,6 @@ def test_search_result_structure():
         assert isinstance(hit["score"], (int, float))
         assert hit["score"] > 0
 
-    # Check score descending order
     scores = [hit["score"] for hit in results]
     assert scores == sorted(scores, reverse=True)
 

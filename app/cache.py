@@ -47,7 +47,7 @@ class ResponseCache:
     ) -> None:
         self.ttl_seconds = ttl_seconds
         self.max_size = max_size
-        self._cache: Dict[str, Tuple[Any, float]] = {}  # key -> (data, expire_at)
+        self._cache: Dict[str, Tuple[Any, float]] = {}
         self._lock = threading.Lock()
 
     @staticmethod
@@ -89,7 +89,6 @@ class ResponseCache:
                     logger.info(f"cache_status=HIT key='{key}' ttl_remaining_sec={ttl_remaining}")
                     return value
                 else:
-                    # Expired entry
                     del self._cache[key]
 
         logger.info(f"cache_status=MISS key='{key}'")
@@ -101,7 +100,6 @@ class ResponseCache:
         expire_at = time.time() + self.ttl_seconds
 
         with self._lock:
-            # Simple eviction: if capacity reached, remove the first (oldest) entry
             if len(self._cache) >= self.max_size and key not in self._cache:
                 first_key = next(iter(self._cache))
                 del self._cache[first_key]
@@ -124,5 +122,4 @@ class ResponseCache:
             return sum(1 for _, exp in self._cache.values() if now < exp)
 
 
-# Global singleton instance for application use
 response_cache = ResponseCache()

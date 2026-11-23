@@ -17,11 +17,9 @@ from app.tools import check_destructive_command, chmod_calculator
 
 def extract_permission(text: str) -> Optional[str]:
     """Extract a 3-digit octal or 9-character symbolic permission token from query."""
-    # Check 9-character symbolic permission first
     m_sym = re.search(r"([rwx\-]{9})", text)
     if m_sym:
         return m_sym.group(1)
-    # Check 3-digit octal permission
     m_oct = re.search(r"\b([0-7]{3})\b", text)
     if m_oct:
         return m_oct.group(1)
@@ -49,7 +47,6 @@ def run_agent_loop(question: str, approved: bool = False) -> Dict[str, Any]:
             "sources": [],
         }
 
-    # 1. Safety interceptor: check if command is destructive and unapproved
     safety = check_destructive_command(clean_q)
     if safety["destructive"] and not approved:
         return {
@@ -68,7 +65,6 @@ def run_agent_loop(question: str, approved: bool = False) -> Dict[str, Any]:
 
     q_lower = clean_q.lower()
 
-    # 2. Intent Detection: Does user need chmod/permission calculation?
     perm_keywords = ["chmod", "permission", "octal", "symbolic", "rwx", "convert"]
     has_perm_keyword = any(kw in q_lower for kw in perm_keywords)
     perm_token = extract_permission(clean_q)
@@ -104,15 +100,16 @@ def run_agent_loop(question: str, approved: bool = False) -> Dict[str, Any]:
                 "intent": "chmod_calculation",
                 "tool_used": tool_name,
                 "tools_used": [tool_name],
-                "answer": calc.get("error", "Please provide a valid 3-digit octal or 9-character symbolic permission."),
+                "answer": calc.get(
+                    "error",
+                    "Please provide a valid 3-digit octal or 9-character symbolic permission.",
+                ),
                 "approval_required": False,
                 "sources": [],
             }
 
-    # 3. Intent Detection: Linux command inquiry -> Call RAG search tool
     tool_name = "rag_search"
 
-    # Out of scope queries (e.g. Q6 VPN question)
     if is_out_of_scope(clean_q):
         return {
             "question": clean_q,
@@ -137,7 +134,6 @@ def run_agent_loop(question: str, approved: bool = False) -> Dict[str, Any]:
     }
 
 
-# Backwards-compatible alias
 run_agent = run_agent_loop
 
 

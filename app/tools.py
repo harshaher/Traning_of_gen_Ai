@@ -6,7 +6,6 @@ Provides Linux file permission calculation and destructive command verification.
 import re
 from typing import Any, Dict, Optional
 
-# Standard permission maps
 OCTAL_TO_SYM = {
     0: "---",
     1: "--x",
@@ -55,7 +54,6 @@ def chmod_calculator(permission: Any) -> Dict[str, Any]:
             "input_permission": raw,
         }
 
-    # Case 1: Octal input (3 digits between 0 and 7, e.g. 750, 755, 600, 644)
     if re.fullmatch(r"[0-7]{3}", raw):
         d_owner = int(raw[0])
         d_group = int(raw[1])
@@ -117,7 +115,6 @@ def chmod_calculator(permission: Any) -> Dict[str, Any]:
             },
         }
 
-    # Case 2: Symbolic input (9 characters consisting of r, w, x, -)
     if re.fullmatch(r"[rwx\-]{9}", raw):
         t_owner = raw[0:3]
         t_group = raw[3:6]
@@ -194,11 +191,12 @@ def chmod_calculator(permission: Any) -> Dict[str, Any]:
             },
         }
 
-    # Case 3: Invalid input format
     if len(raw) == 3 and any(ch not in "01234567" for ch in raw):
         error_msg = f"Invalid octal permission '{raw}'. Octal digits must be between 0 and 7."
     elif len(raw) == 9 and any(ch not in "rwx-" for ch in raw):
-        error_msg = f"Invalid symbolic permission '{raw}'. Characters must only be 'r', 'w', 'x', or '-'."
+        error_msg = (
+            f"Invalid symbolic permission '{raw}'. Characters must only be 'r', 'w', 'x', or '-'."
+        )
     elif len(raw) not in (3, 9):
         error_msg = (
             f"Invalid permission length ({len(raw)} characters). "
@@ -226,7 +224,10 @@ def check_destructive_command(command_str: str) -> Dict[str, Any]:
         (r"\bmkfs\b", "mkfs creates a filesystem and destroys existing drive data."),
         (r"\bdd\b", "dd can overwrite disk partitions directly."),
         (r"\bkill\s+-9\b", "kill -9 forcefully terminates processes without saving state."),
-        (r"\bchmod\s+(-R\s+)?777\b", "chmod 777 grants full world-writable access, posing a major security risk."),
+        (
+            r"\bchmod\s+(-R\s+)?777\b",
+            "chmod 777 grants full world-writable access, posing a major security risk.",
+        ),
     ]
 
     for pattern, warning in destructive_patterns:

@@ -22,9 +22,10 @@ def parse_markdown(file_path: Path) -> List[Record]:
 
     content = file_path.read_text(encoding="utf-8")
     command_name = file_path.stem
-    source_url = f"https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/{file_path.name}"
+    source_url = (
+        f"https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common/{file_path.name}"
+    )
 
-    # Extract description
     description_lines = []
     for line in content.splitlines():
         line_s = line.strip()
@@ -33,7 +34,6 @@ def parse_markdown(file_path: Path) -> List[Record]:
 
     description = " ".join(description_lines) or f"Linux {command_name} command."
 
-    # Pattern matching examples: - Task:\n\n`command`
     pattern = re.compile(r"-\s+([^:\n]+):\s*\n+`([^`]+)`")
 
     for match in pattern.finditer(content):
@@ -65,7 +65,6 @@ def ingest_all(raw_dir: Path = RAW_DIR, output_file: Path = DATA_FILE) -> int:
         recs = parse_markdown(md_file)
         all_parsed_records.extend([r.to_dict() for r in recs])
 
-    # Preserve existing 20-command baseline if present
     existing_records = []
     if output_file.exists():
         try:
@@ -74,7 +73,6 @@ def ingest_all(raw_dir: Path = RAW_DIR, output_file: Path = DATA_FILE) -> int:
         except Exception:
             existing_records = []
 
-    # Merge: keep existing unique commands while refreshing parsed examples
     task_keys = set(r["example_task"].lower() for r in all_parsed_records)
     merged = list(all_parsed_records)
 
@@ -87,9 +85,9 @@ def ingest_all(raw_dir: Path = RAW_DIR, output_file: Path = DATA_FILE) -> int:
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(merged, f, indent=4)
 
-    # Invalidate response cache to avoid serving stale answers after document update
     try:
         from app.cache import response_cache
+
         response_cache.invalidate()
     except Exception:
         pass

@@ -216,6 +216,103 @@ docker compose logs -f
 
 ---
 
+### Production Deployment Workflow (Docker Hub & Render)
+
+ShellSathi follows an enterprise deployment lifecycle:
+`Local Project → Docker Image → Docker Hub → Render → Live Application`
+
+```mermaid
+flowchart LR
+    A["💻 Local Project<br/>(FastAPI + Streamlit + ChromaDB)"] -->|docker build --platform linux/amd64| B["🐳 Docker Image<br/>shellsathi:latest"]
+    B -->|docker push| C["📦 Docker Hub<br/>username/shellsathi:latest"]
+    C -->|Pull Image & Deploy| D["☁️ Render Cloud"]
+    D --> E["🚀 shellsathi-api<br/>(Port 8000, /health)"]
+    D --> F["🎨 shellsathi-ui<br/>(Port 8501, /_stcore/health)"]
+    F -->|BACKEND_URL| E
+```
+
+#### Step 1: Build Docker Image for Linux AMD64
+Cloud platforms like Render run on standard `linux/amd64` architecture. Build the cross-compatible image:
+```powershell
+# Set your Docker Hub username
+$DOCKERHUB_USER = "YOUR_DOCKERHUB_USERNAME"
+
+# Build production image for Linux AMD64 architecture
+docker build --platform linux/amd64 -t ${DOCKERHUB_USER}/shellsathi:latest .
+```
+
+#### Step 2: Verify Image Locally Before Pushing
+```powershell
+# Run API service locally on port 8000
+docker run -d --name shellsathi-api-test -p 8000:8000 ${DOCKERHUB_USER}/shellsathi:latest
+
+# Verify health endpoint returns 200 OK and 44 indexed chunks
+curl http://127.0.0.1:8000/health
+
+# Clean up local test container
+docker rm -f shellsathi-api-test
+```
+
+#### Step 3: Push Docker Image to Docker Hub
+```powershell
+# Log in to Docker Hub
+docker login
+
+# Push image to your Docker Hub repository
+docker push ${DOCKERHUB_USER}/shellsathi:latest
+```
+
+#### Step 4: Deploy on Render Cloud
+Render requires **Two Web Services** sharing the same unified Docker image:
+
+1. **Backend Service (`shellsathi-api`):**
+   - **Environment:** Docker (`Existing image` from Docker Hub)
+   - **Image URL:** `docker.io/YOUR_DOCKERHUB_USERNAME/shellsathi:latest`
+   - **Docker Command / Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+   - **Health Check Path:** `/health`
+   - **Environment Variables:**
+     - `PORT`: `8000`
+     - `GROQ_API_KEY`: `your_groq_api_key_here`
+     - `GEMINI_API_KEY`: `your_gemini_api_key_here` (optional)
+   - **Public URL Generated:** e.g., `https://shellsathi-api.onrender.com`
+
+2. **Frontend Service (`shellsathi-ui`):**
+   - **Environment:** Docker (`Existing image` from Docker Hub)
+   - **Image URL:** `docker.io/YOUR_DOCKERHUB_USERNAME/shellsathi:latest`
+   - **Docker Command / Start Command:** `streamlit run ui/app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true`
+   - **Health Check Path:** `/_stcore/health`
+   - **Environment Variables:**
+     - `PORT`: `8501`
+     - `BACKEND_URL`: `https://shellsathi-api.onrender.com` (points to the API service URL above)
+   - **Public URL Generated:** e.g., `https://shellsathi-ui.onrender.com`
+
+*Alternatively, deploy automatically via Git with the included `render.yaml` Infrastructure-as-Code blueprint by connecting your GitHub repository to Render.*
+
+#### Step 5: ChromaDB Persistence on Cloud
+- The production Docker image comes pre-baked with all 44 documentation chunks in `data/chroma_db/`.
+- On container startup, if `store.count() == 0`, `app/main.py` automatically runs `store.index_chunks()` as a self-healing fallback.
+- For persistent dynamic document uploads across container restarts, mount a Render Persistent Disk at `/app/data`.
+
+#### Step 6: Live Production Verification
+Once deployed on Render, verify both services:
+```powershell
+# 1. Verify FastAPI API Health
+curl https://shellsathi-api.onrender.com/health
+
+# 2. Verify FastAPI Swagger Documentation
+curl -I https://shellsathi-api.onrender.com/docs
+
+# 3. Verify Streamlit Web Interface Health
+curl https://shellsathi-ui.onrender.com/_stcore/health
+
+# 4. Verify RAG Query Endpoint
+curl -X POST https://shellsathi-api.onrender.com/ask `
+  -H "Content-Type: application/json" `
+  -d '{\"question\": \"how to extract tar file\", \"top_k\": 3}'
+```
+
+---
+
 ## 9. API Documentation
 
 | Method | Endpoint | Description | Request Payload / Params | Response Headers / Status |

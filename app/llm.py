@@ -73,7 +73,9 @@ def ask_groq(question: str, system_prompt: str) -> str:
     return content
 
 
-def _ask_gemini_with_usage(question: str, system_prompt: str) -> Tuple[str, Optional[Dict[str, Any]]]:
+def _ask_gemini_with_usage(
+    question: str, system_prompt: str
+) -> Tuple[str, Optional[Dict[str, Any]]]:
     """Send chat request to Google Gemini API and capture provider token usage."""
     api_key = os.getenv("GEMINI_API_KEY")
     model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
@@ -110,84 +112,97 @@ def generate_offline_response(question: str) -> str:
     """
     q_lower = question.lower()
 
-    # Honest "I don't know" for Q6 / out-of-scope queries
-    if any(term in q_lower for term in ["vpn", "hinjewadi", "weather", "tomorrow", "rain", "stock", "cricket"]):
-        return json.dumps({
-            "answer": "I don't know. I am ShellSathi, an assistant dedicated exclusively to Linux commands. I have no access to real-time company network metrics or external live data.",
-            "confidence": 0.0,
-            "follow_up": "Would you like help with a standard Linux networking command like 'ip route', 'ping', or 'traceroute' instead?"
-        })
+    if any(
+        term in q_lower
+        for term in ["vpn", "hinjewadi", "weather", "tomorrow", "rain", "stock", "cricket"]
+    ):
+        return json.dumps(
+            {
+                "answer": "I don't know. I am ShellSathi, an assistant dedicated exclusively to Linux commands. I have no access to real-time company network metrics or external live data.",
+                "confidence": 0.0,
+                "follow_up": "Would you like help with a standard Linux networking command like 'ip route', 'ping', or 'traceroute' instead?",
+            }
+        )
 
-    # Hidden files
     if "hidden" in q_lower:
-        return json.dumps({
-            "answer": "In Linux, hidden files begin with a dot ('.'). Run 'ls -a' or 'ls --all' to display all files including hidden ones.",
-            "confidence": 0.95,
-            "follow_up": "Would you like to combine this with '-l' to view file permissions and sizes with 'ls -la'?"
-        })
+        return json.dumps(
+            {
+                "answer": "In Linux, hidden files begin with a dot ('.'). Run 'ls -a' or 'ls --all' to display all files including hidden ones.",
+                "confidence": 0.95,
+                "follow_up": "Would you like to combine this with '-l' to view file permissions and sizes with 'ls -la'?",
+            }
+        )
 
-    # Exact string
     if "exact" in q_lower:
-        return json.dumps({
-            "answer": "Use 'grep -F' (fixed strings) to search for an exact string without regex interpretation: 'grep -F \"exact_text\" filename'.",
-            "confidence": 0.95,
-            "follow_up": "Do you need the search to be case-insensitive using the '-i' flag?"
-        })
+        return json.dumps(
+            {
+                "answer": "Use 'grep -F' (fixed strings) to search for an exact string without regex interpretation: 'grep -F \"exact_text\" filename'.",
+                "confidence": 0.95,
+                "follow_up": "Do you need the search to be case-insensitive using the '-i' flag?",
+            }
+        )
 
-    # Long format
     if "long" in q_lower:
-        return json.dumps({
-            "answer": "Run 'ls -l' to list directory contents in long format, showing file permissions, owner, group, byte size, and last modified date.",
-            "confidence": 0.95,
-            "follow_up": "Would you like to display sizes in human-readable units (KB, MB, GB) using 'ls -lh'?"
-        })
+        return json.dumps(
+            {
+                "answer": "Run 'ls -l' to list directory contents in long format, showing file permissions, owner, group, byte size, and last modified date.",
+                "confidence": 0.95,
+                "follow_up": "Would you like to display sizes in human-readable units (KB, MB, GB) using 'ls -lh'?",
+            }
+        )
 
-    # Recursive search
     if "recursiv" in q_lower:
-        return json.dumps({
-            "answer": "Run 'grep -r \"pattern\" /path/to/dir' to search all files recursively. Tip: Use 'grep -rI' to skip binary files.",
-            "confidence": 0.95,
-            "follow_up": "Would you like to print line numbers alongside matches using the '-n' flag?"
-        })
+        return json.dumps(
+            {
+                "answer": "Run 'grep -r \"pattern\" /path/to/dir' to search all files recursively. Tip: Use 'grep -rI' to skip binary files.",
+                "confidence": 0.95,
+                "follow_up": "Would you like to print line numbers alongside matches using the '-n' flag?",
+            }
+        )
 
-    # Tar creation
     if "create" in q_lower and ("archive" in q_lower or "tar" in q_lower or "compress" in q_lower):
-        return json.dumps({
-            "answer": "Use 'tar -czvf archive_name.tar.gz /path/to/folder'. Flags: -c (create), -z (gzip), -v (verbose), -f (filename).",
-            "confidence": 0.95,
-            "follow_up": "Would you like to know how to create a bzip2 archive ('.tar.bz2') for higher compression?"
-        })
+        return json.dumps(
+            {
+                "answer": "Use 'tar -czvf archive_name.tar.gz /path/to/folder'. Flags: -c (create), -z (gzip), -v (verbose), -f (filename).",
+                "confidence": 0.95,
+                "follow_up": "Would you like to know how to create a bzip2 archive ('.tar.bz2') for higher compression?",
+            }
+        )
 
-    # Tar extraction
     if "extract" in q_lower:
-        return json.dumps({
-            "answer": "Use 'tar -xvf archive.tar.gz -C /target/directory'. The '-C' flag changes directory before extraction.",
-            "confidence": 0.95,
-            "follow_up": "Make sure the target directory exists before running the command. Would you like to create it with 'mkdir -p'?"
-        })
+        return json.dumps(
+            {
+                "answer": "Use 'tar -xvf archive.tar.gz -C /target/directory'. The '-C' flag changes directory before extraction.",
+                "confidence": 0.95,
+                "follow_up": "Make sure the target directory exists before running the command. Would you like to create it with 'mkdir -p'?",
+            }
+        )
 
-    # Tar list contents
     if "contents" in q_lower and ("tar" in q_lower or "archive" in q_lower):
-        return json.dumps({
-            "answer": "Run 'tar -tvf archive.tar.gz' to list the contents without extracting. Flags: -t (list), -v (verbose), -f (file).",
-            "confidence": 0.95,
-            "follow_up": "Would you like to search for a specific file inside the archive using 'tar -tf archive.tar.gz | grep filename'?"
-        })
+        return json.dumps(
+            {
+                "answer": "Run 'tar -tvf archive.tar.gz' to list the contents without extracting. Flags: -t (list), -v (verbose), -f (file).",
+                "confidence": 0.95,
+                "follow_up": "Would you like to search for a specific file inside the archive using 'tar -tf archive.tar.gz | grep filename'?",
+            }
+        )
 
-    # Pattern search
     if "pattern" in q_lower or "search" in q_lower:
-        return json.dumps({
-            "answer": "Use 'grep \"pattern\" filename' to search for matching lines within a file.",
-            "confidence": 0.95,
-            "follow_up": "Do you want to search across all files in a directory recursively?"
-        })
+        return json.dumps(
+            {
+                "answer": "Use 'grep \"pattern\" filename' to search for matching lines within a file.",
+                "confidence": 0.95,
+                "follow_up": "Do you want to search across all files in a directory recursively?",
+            }
+        )
 
-    # Default file listing
-    return json.dumps({
-        "answer": "Use 'ls' to list files in the current directory. For one file per line, use 'ls -1'.",
-        "confidence": 0.95,
-        "follow_up": "Would you like to see how to list hidden files or sort files by modification date?"
-    })
+    return json.dumps(
+        {
+            "answer": "Use 'ls' to list files in the current directory. For one file per line, use 'ls -1'.",
+            "confidence": 0.95,
+            "follow_up": "Would you like to see how to list hidden files or sort files by modification date?",
+        }
+    )
 
 
 def generate_answer_with_usage(

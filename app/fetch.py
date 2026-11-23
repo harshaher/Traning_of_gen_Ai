@@ -14,7 +14,9 @@ BASE_URL = "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages/common"
 DEFAULT_COMMANDS = ["tar", "ls", "grep", "chmod"]
 
 
-def fetch_tldr_page(command: str, output_dir: Optional[Path] = None, timeout: int = 10) -> Optional[str]:
+def fetch_tldr_page(
+    command: str, output_dir: Optional[Path] = None, timeout: int = 10
+) -> Optional[str]:
     """Download single TLDR markdown document and save to disk."""
     dest_dir = output_dir or RAW_DIR
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -28,7 +30,6 @@ def fetch_tldr_page(command: str, output_dir: Optional[Path] = None, timeout: in
         target_file.write_text(content, encoding="utf-8")
         return content
     except requests.RequestException as err:
-        # If offline or remote is unreachable, return existing local file if present
         if target_file.exists():
             return target_file.read_text(encoding="utf-8")
         print(f"Warning: Could not fetch {command}.md: {err}")
