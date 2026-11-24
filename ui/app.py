@@ -14,7 +14,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 import streamlit as st
@@ -165,7 +165,7 @@ if (
             "id": "msg_demo_0",
             "role": "assistant",
             "content": demo_ans,
-            "sources": ["data/raw/tar.md"],
+            "sources": ["https://tldr.sh/linux/tar"],
             "mode": "ask",
             "question": "How do I extract a tar archive to a specific folder?",
             "templates": find_command_templates(demo_ans),
@@ -279,6 +279,29 @@ def render_placeholder_filler(template: str, widget_key_prefix: str) -> None:
         st.code(completed_command, language="bash")
 
 
+def render_citations(sources: Optional[List[str]]) -> None:
+    """Render verified source citations with clickable hyperlinks."""
+    valid_sources = [s.strip() for s in (sources or []) if s and isinstance(s, str) and s.strip()]
+    if valid_sources:
+        with st.expander("📚 Supporting Citations & Documentation Sources", expanded=False):
+            for src in valid_sources:
+                if src.startswith("http://") or src.startswith("https://"):
+                    label = src
+                    if "tldr.sh/linux/" in src:
+                        cmd = src.split("tldr.sh/linux/")[-1].strip("/")
+                        label = f"TLDR Linux Manual: `{cmd}` ({src})"
+                    elif "raw.githubusercontent.com" in src:
+                        cmd = src.split("/")[-1].replace(".md", "")
+                        label = f"TLDR Common Documentation: `{cmd}` ({src})"
+                    elif "man7.org" in src:
+                        label = f"Linux man-pages Reference ({src})"
+                    st.markdown(f"- 📄 [{label}]({src})")
+                else:
+                    st.markdown(f"- 📄 `{src}`")
+    else:
+        st.caption("_No supporting source was returned._")
+
+
 for msg_idx, message in enumerate(st.session_state.messages):
     role = message.get("role", "assistant")
     with st.chat_message(role):
@@ -289,13 +312,7 @@ for msg_idx, message in enumerate(st.session_state.messages):
             if tool_used and tool_used != "none":
                 st.info(f"🔧 **Tool executed:** `{tool_used}`")
 
-            sources = message.get("sources", [])
-            if sources:
-                with st.expander("📚 Supporting Citations & Documentation Sources", expanded=False):
-                    for src in sources:
-                        st.markdown(f"- 📄 `{src}`")
-            elif message.get("mode") == "ask" or message.get("is_rag"):
-                st.caption("_No supporting source was returned._")
+            render_citations(message.get("sources", []))
 
             templates = message.get("templates", [])
             if not templates and has_placeholders(message.get("content", "")):
@@ -417,15 +434,7 @@ if user_prompt:
                     templates = find_command_templates(answer_text)
 
                     st.markdown(answer_text)
-
-                    if sources:
-                        with st.expander(
-                            "📚 Supporting Citations & Documentation Sources", expanded=False
-                        ):
-                            for src in sources:
-                                st.markdown(f"- 📄 `{src}`")
-                    else:
-                        st.caption("_No supporting source was returned._")
+                    render_citations(sources)
 
                     msg_key_id = f"msg_{len(st.session_state.messages)}"
                     for t_idx, tmpl in enumerate(templates):
@@ -473,12 +482,7 @@ if user_prompt:
                     if tool_used and tool_used != "none":
                         st.info(f"🔧 **Tool executed:** `{tool_used}`")
 
-                    if sources:
-                        with st.expander(
-                            "📚 Supporting Citations & Documentation Sources", expanded=False
-                        ):
-                            for src in sources:
-                                st.markdown(f"- 📄 `{src}`")
+                    render_citations(sources)
 
                     msg_key_id = f"msg_{len(st.session_state.messages)}"
 

@@ -76,7 +76,7 @@
         "platform": "Linux",
         "description": "Find files and directories.",
         "example_task": "Find all Python files.",
-        "example_command": "find . -name '*.py'",
+        "example_command": "find . -type f -name \"*.py\"",
         "source_url": "https://tldr.sh/linux/find"
     },
     {
