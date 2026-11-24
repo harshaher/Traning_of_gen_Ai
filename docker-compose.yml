@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.api
     container_name: shellsathi-api
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
@@ -30,9 +30,9 @@ services:
   ui:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.ui
     container_name: shellsathi-ui
-    command: ["streamlit", "run", "ui/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    command: ["streamlit", "run", "ui/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true", "--browser.gatherUsageStats=false"]
     ports:
       - "8501:8501"
     environment:

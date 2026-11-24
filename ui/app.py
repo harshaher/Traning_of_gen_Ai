@@ -53,17 +53,32 @@ def get_backend_url() -> str:
         .rstrip("/")
     )
     if not (url.startswith("http://") or url.startswith("https://")):
-        url = f"https://{url}"
+        if "127.0.0.1" in url or "localhost" in url or url.startswith("api:"):
+            url = f"http://{url}"
+        else:
+            url = f"https://{url}"
+
+    # Auto-resolve Render service slug: if user or Render set 'shellsathi-api' without domain
+    # e.g. https://shellsathi-api -> https://shellsathi-api.onrender.com
+    clean_host = url.split("://")[-1].split(":")[0]
+    if "." not in clean_host and clean_host not in ("localhost", "api"):
+        url = f"https://{clean_host}.onrender.com"
+
     return url
 
 
-def check_backend_health(base_url: str) -> Dict[str, Any]:
+def check_backend_health(base_url: str, timeout: float = 10.0) -> Dict[str, Any]:
     """Query FastAPI healthcheck endpoint."""
     try:
-        resp = requests.get(f"{base_url}/health", timeout=2.5)
+        resp = requests.get(f"{base_url}/health", timeout=timeout)
         if resp.status_code == 200:
             return {"online": True, "data": resp.json()}
         return {"online": False, "error": f"HTTP {resp.status_code}"}
+    except requests.exceptions.Timeout:
+        return {
+            "online": False,
+            "error": "Connection timed out. The backend service may be waking up from sleep (Render free tier cold start). Please wait a moment and refresh.",
+        }
     except Exception as exc:
         return {"online": False, "error": str(exc)}
 
@@ -112,7 +127,7 @@ def submit_feedback_api(
         "thread_id": thread_id,
     }
     try:
-        resp = requests.post(url, json=payload, timeout=5)
+        resp = requests.post(url, json=payload, timeout=10)
         return resp.status_code == 200
     except Exception:
         return False

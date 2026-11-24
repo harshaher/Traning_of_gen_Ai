@@ -1,45 +1,26 @@
 # ==============================================================================
-# ShellSathi - Render Infrastructure-as-Code Blueprint (Day 12)
+# ShellSathi - Render Infrastructure-as-Code Blueprint
 # ==============================================================================
-# Deploys both the FastAPI backend service and the Streamlit frontend service
-# using containerized Docker environments defined in Dockerfile.
+# Service: shellsathi-ui (Streamlit Frontend Web Service)
+# Connects to the existing, already deployed FastAPI backend at:
+# https://shellsathi-api.onrender.com
+#
+# NOTE: The backend service (shellsathi-api) is already deployed as a standalone
+# service on Render at https://shellsathi-api.onrender.com. To avoid creating
+# duplicate services and wasting free instance quota, only the frontend is
+# declared below.
 # ==============================================================================
 
 services:
   # ----------------------------------------------------------------------------
-  # 1. ShellSathi FastAPI REST API Service
-  # ----------------------------------------------------------------------------
-  - type: web
-    name: shellsathi-api
-    env: docker
-    dockerContext: .
-    dockerfilePath: Dockerfile
-    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
-    plan: free
-    region: oregon
-    healthCheckPath: /health
-    autoDeploy: true
-    envVars:
-      - key: PORT
-        value: 8000
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: GROQ_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: COHERE_API_KEY
-        sync: false
-
-  # ----------------------------------------------------------------------------
-  # 2. ShellSathi Streamlit Interactive Web Interface
+  # ShellSathi Streamlit Interactive Web Interface
   # ----------------------------------------------------------------------------
   - type: web
     name: shellsathi-ui
-    env: docker
+    runtime: docker
     dockerContext: .
-    dockerfilePath: Dockerfile
-    dockerCommand: streamlit run ui/app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+    dockerfilePath: Dockerfile.ui
+    dockerCommand: sh -c "exec streamlit run ui/app.py --server.port ${PORT:-8501} --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false"
     plan: free
     region: oregon
     healthCheckPath: /_stcore/health
@@ -48,7 +29,29 @@ services:
       - key: PORT
         value: 8501
       - key: BACKEND_URL
-        fromService:
-          type: web
-          name: shellsathi-api
-          property: host
+        value: https://shellsathi-api.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  # ----------------------------------------------------------------------------
+  # (Reference Only) Existing Deployed Backend Service
+  # Existing URL: https://shellsathi-api.onrender.com
+  # Keep commented to prevent creating duplicate backend instances on Render.
+  # ----------------------------------------------------------------------------
+  # - type: web
+  #   name: shellsathi-api
+  #   runtime: docker
+  #   dockerContext: .
+  #   dockerfilePath: Dockerfile.api
+  #   dockerCommand: sh -c "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+  #   plan: free
+  #   region: oregon
+  #   healthCheckPath: /health
+  #   autoDeploy: true
+  #   envVars:
+  #     - key: PORT
+  #       value: 8000
+  #     - key: GROQ_API_KEY
+  #       sync: false
+  #     - key: GEMINI_API_KEY
+  #       sync: false

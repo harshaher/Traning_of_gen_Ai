@@ -1,0 +1,47 @@
+# ==============================================================================
+# ShellSathi - Streamlit Web UI Production Container
+# ==============================================================================
+# Targets Linux AMD64 architecture for Render Web Service deployment.
+# Runs Streamlit frontend bound to 0.0.0.0 with dynamic $PORT support.
+# Connects to ShellSathi FastAPI backend via $BACKEND_URL.
+# ==============================================================================
+
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8501 \
+    BACKEND_URL=https://shellsathi-api.onrender.com
+
+WORKDIR /app
+
+# Install system dependencies (curl for container health checks)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency manifest first to leverage Docker layer caching
+COPY requirements.txt .
+
+# Install production Python dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy frontend source, helper modules, prompts, and configurations
+COPY app/ ./app/
+COPY ui/ ./ui/
+COPY data/ ./data/
+COPY prompts/ ./prompts/
+COPY pyproject.toml ./
+COPY README.md ./
+
+# Expose default Streamlit UI port
+EXPOSE 8501
+
+# Health check using Streamlit core health endpoint
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 --start-period=10s \
+    CMD curl -f http://localhost:${PORT:-8501}/_stcore/health || exit 1
+
+# Launch Streamlit bound to 0.0.0.0 supporting Render dynamic $PORT
+CMD ["sh", "-c", "exec streamlit run ui/app.py --server.port ${PORT:-8501} --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false"]

@@ -1,0 +1,46 @@
+# ==============================================================================
+# ShellSathi - FastAPI REST API Production Container
+# ==============================================================================
+# Targets Linux AMD64 architecture for Render Web Service deployment.
+# Runs FastAPI backend via Uvicorn, bound to 0.0.0.0 with dynamic $PORT support.
+# Pre-bakes ChromaDB vector database index (44 chunks) into container layers.
+# ==============================================================================
+
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8000
+
+WORKDIR /app
+
+# Install system dependencies (curl for container health checks)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency manifest first to leverage Docker layer caching
+COPY requirements.txt .
+
+# Install production Python dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy backend application source, datasets, prompts, and evaluation assets
+COPY app/ ./app/
+COPY data/ ./data/
+COPY prompts/ ./prompts/
+COPY eval/ ./eval/
+COPY pyproject.toml ./
+COPY README.md ./
+
+# Expose default FastAPI API port
+EXPOSE 8000
+
+# Health check using FastAPI /health endpoint
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 --start-period=10s \
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+
+# Launch Uvicorn bound to 0.0.0.0 supporting Render dynamic $PORT
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
