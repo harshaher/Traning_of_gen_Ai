@@ -11,6 +11,7 @@ Features:
 
 import os
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -68,19 +69,29 @@ def get_backend_url() -> str:
 
 
 def check_backend_health(base_url: str, timeout: float = 10.0) -> Dict[str, Any]:
-    """Query FastAPI healthcheck endpoint."""
-    try:
-        resp = requests.get(f"{base_url}/health", timeout=timeout)
-        if resp.status_code == 200:
-            return {"online": True, "data": resp.json()}
-        return {"online": False, "error": f"HTTP {resp.status_code}"}
-    except requests.exceptions.Timeout:
-        return {
-            "online": False,
-            "error": "Connection timed out. The backend service may be waking up from sleep (Render free tier cold start). Please wait a moment and refresh.",
-        }
-    except Exception as exc:
-        return {"online": False, "error": str(exc)}
+    """Query FastAPI healthcheck endpoint with automatic retry for cold starts."""
+    for attempt in range(2):
+        try:
+            resp = requests.get(f"{base_url}/health", timeout=timeout)
+            if resp.status_code == 200:
+                return {"online": True, "data": resp.json()}
+            if resp.status_code in (502, 503) and attempt == 0:
+                time.sleep(2)
+                continue
+            error_msg = f"HTTP {resp.status_code}"
+            if resp.status_code in (502, 503):
+                error_msg += " (Backend is waking up or deploying on Render. Please click 'Recheck Connection' below.)"
+            return {"online": False, "error": error_msg}
+        except requests.exceptions.Timeout:
+            if attempt == 0:
+                continue
+            return {
+                "online": False,
+                "error": "Connection timed out. The backend service may be waking up from sleep (Render free tier cold start). Please wait a moment and refresh.",
+            }
+        except Exception as exc:
+            return {"online": False, "error": str(exc)}
+    return {"online": False, "error": "Backend unreachable"}
 
 
 def send_ask_request(base_url: str, question: str, top_k: int = 3) -> Dict[str, Any]:
@@ -205,6 +216,8 @@ with st.sidebar:
         st.success(f"● Backend Online (ChromaDB: {chunks} chunks)")
     else:
         st.error(f"● Backend Offline\n{health_info.get('error', '')}")
+        if st.button("🔄 Recheck Connection", use_container_width=True):
+            st.rerun()
         st.info("Start backend with: `uvicorn app.main:app --port 8000`")
 
     st.markdown("---")
