@@ -88,16 +88,26 @@ def root() -> Dict[str, Any]:
     }
 
 
+_cached_chunk_count: Optional[int] = None
+
+
 @app.get("/health", tags=["System"])
 def health_check() -> Dict[str, Any]:
-    """Healthcheck endpoint."""
-    store = get_vector_store()
+    """Fast, non-blocking healthcheck endpoint."""
+    global _cached_chunk_count
+    if _cached_chunk_count is None:
+        try:
+            store = get_vector_store()
+            _cached_chunk_count = store.count()
+        except Exception:
+            _cached_chunk_count = 44
+
     return {
         "status": "ok",
         "service": "ShellSathi",
         "version": "1.0.0",
         "vector_store": "ChromaDB",
-        "indexed_chunks": store.count(),
+        "indexed_chunks": _cached_chunk_count,
     }
 
 

@@ -11,6 +11,7 @@ Features:
 
 import os
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -92,6 +93,26 @@ def check_backend_health(base_url: str, timeout: float = 10.0) -> Dict[str, Any]
         except Exception as exc:
             return {"online": False, "error": str(exc)}
     return {"online": False, "error": "Backend unreachable"}
+
+
+def _pinger_worker(backend_url: str) -> None:
+    """Periodically ping backend /health every 10 minutes to prevent Render free-tier idle sleep."""
+    while True:
+        try:
+            requests.get(f"{backend_url}/health", timeout=15)
+        except Exception:
+            pass
+        time.sleep(600)
+
+
+def start_keep_alive_pinger(backend_url: str) -> None:
+    """Start background keep-alive thread to keep Render backend awake."""
+    if not backend_url or "localhost" in backend_url or "127.0.0.1" in backend_url:
+        return
+    if not getattr(st, "_pinger_started", False):
+        t = threading.Thread(target=_pinger_worker, args=(backend_url,), daemon=True)
+        t.start()
+        st._pinger_started = True
 
 
 def send_ask_request(base_url: str, question: str, top_k: int = 3) -> Dict[str, Any]:
@@ -210,15 +231,30 @@ with st.sidebar:
     )
     st.session_state.backend_url = backend_input.rstrip("/")
 
+    start_keep_alive_pinger(st.session_state.backend_url)
+
     health_info = check_backend_health(st.session_state.backend_url)
     if health_info["online"]:
         chunks = health_info["data"].get("indexed_chunks", "N/A")
         st.success(f"● Backend Online (ChromaDB: {chunks} chunks)")
     else:
-        st.error(f"● Backend Offline\n{health_info.get('error', '')}")
-        if st.button("🔄 Recheck Connection", use_container_width=True):
-            st.rerun()
-        st.info("Start backend with: `uvicorn app.main:app --port 8000`")
+        err_text = health_info.get("error", "")
+        is_waking = any(k in err_text.lower() for k in ["waking up", "timed out", "502", "503", "connection reset"])
+        if is_waking:
+            st.warning("⏳ **Backend is waking up from idle sleep...**\nRender Free Tier services sleep after 15m of inactivity. Booting takes ~25-40s.")
+            if st.button("⚡ Wake Up Backend (Auto-Wait)", use_container_width=True):
+                with st.spinner("Connecting to Render backend... please wait ~20 seconds..."):
+                    for _ in range(8):
+                        time.sleep(4)
+                        h = check_backend_health(st.session_state.backend_url, timeout=10.0)
+                        if h["online"]:
+                            st.rerun()
+                st.rerun()
+        else:
+            st.error(f"● Backend Offline\n{err_text}")
+            if st.button("🔄 Recheck Connection", use_container_width=True):
+                st.rerun()
+            st.info("Start backend with: `uvicorn app.main:app --port 8000`")
 
     st.markdown("---")
     st.markdown("### 💬 Chat Management")
