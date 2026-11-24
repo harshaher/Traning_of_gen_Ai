@@ -175,7 +175,7 @@ if (
 
 with st.sidebar:
     st.markdown("## 🐧 ShellSathi")
-    st.caption("Intelligent Linux Command Assistant (SJ-62)")
+    st.caption("Intelligent Linux Command Assistant")
 
     st.markdown("---")
     st.markdown("### ⚙️ Operating Mode")
@@ -216,13 +216,6 @@ with st.sidebar:
         st.session_state.feedback_status = {}
         st.session_state.pending_approval = None
         st.rerun()
-
-    st.markdown("---")
-    st.markdown("### 👤 Project Info")
-    st.markdown("**Student:** Harsh Vilas Aher")
-    st.markdown("**Roll Number:** 2125PCAM1004")
-    st.markdown("**Project ID:** SJ-62")
-    st.markdown("**Version:** Day 10 (Checkpoint 2)")
 
 
 st.title("🐧 ShellSathi – Your Linux Command Assistant")
