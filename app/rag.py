@@ -172,13 +172,10 @@ def answer_with_rag(
     # Context snippets for transparency / token tracking
     context_snippets = [f"[{h['page']}] {h['title']}: {h['text']}" for h in valid_hits]
 
-    primary_source = sources[0] if sources else top_hit.get("source", "")
-
     answer_text = (
         f"Based on the official Linux documentation for '{best_cmd}':\n"
         f"To {best_title.lower()}:\n\n"
-        f"{best_text}\n\n"
-        f"Source: {primary_source}"
+        f"{best_text}"
     )
 
     confidence = round(float(top_hit.get("score", 0.85)), 2)

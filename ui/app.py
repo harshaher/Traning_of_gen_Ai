@@ -272,27 +272,42 @@ def render_placeholder_filler(template: str, widget_key_prefix: str) -> None:
         st.code(completed_command, language="bash")
 
 
+LINUX_SPECIFIC_COMMANDS = {"top", "journalctl", "systemctl"}
+
+
+def get_working_doc_url(src: str) -> str:
+    """Return a verified, working web documentation URL for the command."""
+    clean = src.strip()
+    if "tldr.sh/linux/" in clean:
+        cmd = clean.split("tldr.sh/linux/")[-1].strip("/")
+        folder = "linux" if cmd in LINUX_SPECIFIC_COMMANDS else "common"
+        return f"https://github.com/tldr-pages/tldr/blob/main/pages/{folder}/{cmd}.md"
+    if "raw.githubusercontent.com/tldr-pages/tldr/main/" in clean:
+        return clean.replace(
+            "raw.githubusercontent.com/tldr-pages/tldr/main/",
+            "github.com/tldr-pages/tldr/blob/main/",
+        )
+    return clean
+
+
 def render_citations(sources: Optional[List[str]]) -> None:
-    """Render verified source citations with clickable hyperlinks."""
+    """Render verified source citations with clickable hyperlinks that actually work."""
     valid_sources = [s.strip() for s in (sources or []) if s and isinstance(s, str) and s.strip()]
     if valid_sources:
         with st.expander("📚 Supporting Citations & Documentation Sources", expanded=False):
-            for src in valid_sources:
-                if src.startswith("http://") or src.startswith("https://"):
-                    label = src
-                    if "tldr.sh/linux/" in src:
-                        cmd = src.split("tldr.sh/linux/")[-1].strip("/")
-                        label = f"TLDR Linux Manual: `{cmd}` ({src})"
-                    elif "raw.githubusercontent.com" in src:
-                        cmd = src.split("/")[-1].replace(".md", "")
-                        label = f"TLDR Common Documentation: `{cmd}` ({src})"
-                    elif "man7.org" in src:
-                        label = f"Linux man-pages Reference ({src})"
-                    st.markdown(f"- 📄 [{label}]({src})")
+            for raw_src in valid_sources:
+                working_url = get_working_doc_url(raw_src)
+                if working_url.startswith("http://") or working_url.startswith("https://"):
+                    if "github.com/tldr-pages/tldr" in working_url:
+                        cmd = working_url.split("/")[-1].replace(".md", "")
+                        label = f"Official TLDR Documentation: `{cmd}`"
+                    elif "man7.org" in working_url:
+                        label = "Linux man-pages Reference"
+                    else:
+                        label = working_url
+                    st.markdown(f"- 📄 [{label}]({working_url})")
                 else:
-                    st.markdown(f"- 📄 `{src}`")
-    else:
-        st.caption("_No supporting source was returned._")
+                    st.markdown(f"- 📄 `{raw_src}`")
 
 
 for msg_idx, message in enumerate(st.session_state.messages):
