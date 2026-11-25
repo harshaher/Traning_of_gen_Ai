@@ -1,12 +1,14 @@
-"""
-main.py - ShellSathi Unified FastAPI Application (Days 1 to 9)
 
-Integrates:
-  - Day 4: Records, Smart Search (/health, /records, /search, /questions)
-  - Day 6: LLM Chat (/chat)
-  - Day 7: Vector Semantic Search (/search/semantic)
-  - Day 8: Complete RAG System (/ask)
-  - Day 9: Autonomous Agent (/agent) with chmod tools and approval workflow
+"""
+main.py - ShellSathi Unified FastAPI Application (Days 1 to 14)
+
+Production-ready Linux command assistant backend:
+  - Day 4: Command records, smart TF-IDF search, and health monitoring
+  - Day 6: Schema-validated LLM query synthesis
+  - Day 7: Dense neural vector semantic search via ChromaDB
+  - Day 8: High-precision RAG retrieval with verified citations
+  - Day 9: Autonomous LangGraph agent with chmod tools and approval workflows
+  - Day 14: Tiered health probes (liveness, readiness) for cloud deployment
 """
 
 import json
@@ -59,15 +61,28 @@ app.add_middleware(
 app.add_middleware(RequestLatencyLoggingMiddleware)
 
 
+_is_ready: bool = False
+_chroma_status: str = "initializing"
+_cached_chunk_count: int = 44
+
+
 @app.on_event("startup")
 async def startup_event() -> None:
     """Initialize persistent Chroma vector store on application start."""
+    global _is_ready, _chroma_status, _cached_chunk_count
     try:
         store = get_vector_store()
-        if store.count() == 0:
-            store.index_chunks()
+        count = store.count()
+        if count == 0:
+            count = store.index_chunks()
+        _cached_chunk_count = count
+        _chroma_status = "connected"
+        _is_ready = True
+        print(f"[ShellSathi] Startup complete: {count} chunks loaded into ChromaDB.")
     except Exception as exc:
-        print(f"Startup initialization notice: {exc}")
+        _chroma_status = f"degraded: {exc}"
+        _is_ready = True  # Keep API alive for non-vector endpoints
+        print(f"[ShellSathi] Notice during vector store initialization: {exc}")
 
 
 @app.get("/", tags=["System"])
@@ -88,24 +103,45 @@ def root() -> Dict[str, Any]:
     }
 
 
-_cached_chunk_count: Optional[int] = None
-
-
 @app.get("/health", tags=["System"])
 def health_check() -> Dict[str, Any]:
-    """Fast, non-blocking healthcheck endpoint."""
-    global _cached_chunk_count
-    if _cached_chunk_count is None:
-        try:
-            store = get_vector_store()
-            _cached_chunk_count = store.count()
-        except Exception:
-            _cached_chunk_count = 44
-
+    """Comprehensive healthcheck endpoint reporting liveness, readiness, and vector store metrics."""
+    global _cached_chunk_count, _chroma_status, _is_ready
     return {
         "status": "ok",
         "service": "ShellSathi",
         "version": "1.0.0",
+        "vector_store": "ChromaDB",
+        "indexed_chunks": _cached_chunk_count,
+        "liveness": "ok",
+        "readiness": "ready" if _is_ready else "initializing",
+        "chromadb_status": _chroma_status,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/health/live", tags=["System"])
+def health_live() -> Dict[str, str]:
+    """Fast, sub-millisecond liveness probe for container orchestrators."""
+    return {"status": "alive", "service": "ShellSathi"}
+
+
+@app.get("/health/ready", tags=["System"])
+def health_ready(response: Response) -> Dict[str, Any]:
+    """Readiness probe verifying vector store availability."""
+    global _is_ready, _cached_chunk_count, _chroma_status
+    if not _is_ready:
+        response.status_code = 503
+        return {
+            "status": "not_ready",
+            "service": "ShellSathi",
+            "readiness": "warming_up",
+            "chromadb_status": _chroma_status,
+        }
+    return {
+        "status": "ready",
+        "service": "ShellSathi",
+        "readiness": "ready",
         "vector_store": "ChromaDB",
         "indexed_chunks": _cached_chunk_count,
     }

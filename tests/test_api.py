@@ -27,6 +27,26 @@ def test_api_health_endpoint(client: TestClient):
     assert data.get("vector_store") == "ChromaDB"
     assert "indexed_chunks" in data
     assert isinstance(data["indexed_chunks"], int)
+    assert data.get("liveness") == "ok"
+    assert data.get("chromadb_status") in ("connected", "initializing")
+
+
+def test_api_health_live_endpoint(client: TestClient):
+    """Verify GET /health/live returns fast sub-millisecond liveness probe."""
+    response = client.get("/health/live")
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("status") == "alive"
+    assert data.get("service") == "ShellSathi"
+
+
+def test_api_health_ready_endpoint(client: TestClient):
+    """Verify GET /health/ready returns readiness status for traffic routing."""
+    response = client.get("/health/ready")
+    assert response.status_code in (200, 503)
+    data = response.json()
+    assert "status" in data
+    assert data.get("service") == "ShellSathi"
 
 
 def test_api_root_endpoint(client: TestClient):

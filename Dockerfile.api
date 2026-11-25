@@ -38,9 +38,9 @@ COPY README.md ./
 # Expose default FastAPI API port
 EXPOSE 8000
 
-# Health check using FastAPI /health endpoint
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=30s \
-    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+# Health check using FastAPI /health/live endpoint
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=20s \
+    CMD curl -f http://localhost:${PORT:-8000}/health/live || curl -f http://localhost:${PORT:-8000}/health || exit 1
 
 # Launch Uvicorn bound to 0.0.0.0 supporting Render dynamic $PORT
 CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
