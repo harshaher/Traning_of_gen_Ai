@@ -1,4 +1,3 @@
-
 """
 main.py - ShellSathi Unified FastAPI Application (Days 1 to 14)
 
@@ -126,6 +125,7 @@ def health_live() -> Dict[str, str]:
     return {"status": "alive", "service": "ShellSathi"}
 
 
+@app.get("/ready", tags=["System"])
 @app.get("/health/ready", tags=["System"])
 def health_ready(response: Response) -> Dict[str, Any]:
     """Readiness probe verifying vector store availability."""

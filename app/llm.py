@@ -43,28 +43,44 @@ def get_full_prompt(task_id: int = 1) -> str:
 def _ask_groq_with_usage(question: str, system_prompt: str) -> Tuple[str, Optional[Dict[str, Any]]]:
     """Send chat request to Groq API and capture provider token usage."""
     api_key = os.getenv("GROQ_API_KEY")
-    model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
 
     if not api_key or api_key == "your_groq_api_key_here":
         raise ValueError("Groq API key not configured in .env.")
 
-    response = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        json={
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question},
-            ],
-            "temperature": 0.2,
-        },
-        timeout=60,
-    )
-    response.raise_for_status()
-    data = response.json()
-    usage = data.get("usage")
-    return data["choices"][0]["message"]["content"], usage
+    models_to_try = [model]
+    if model != "qwen/qwen3.8-27b":
+        models_to_try.append("qwen/qwen3.8-27b")
+
+    last_error: Optional[Exception] = None
+    for m in models_to_try:
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": m,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": question},
+                    ],
+                    "temperature": 0.2,
+                },
+                timeout=60,
+            )
+            response.raise_for_status()
+            data = response.json()
+            usage = data.get("usage")
+            return data["choices"][0]["message"]["content"], usage
+        except Exception as exc:
+            last_error = exc
+            if "model_not_found" in str(exc) or "does not exist" in str(exc):
+                continue
+            raise exc
+
+    if last_error:
+        raise last_error
+    raise ValueError("No response from Groq.")
 
 
 def ask_groq(question: str, system_prompt: str) -> str:
@@ -213,7 +229,7 @@ def generate_answer_with_usage(
     full_prompt = get_full_prompt(task_id)
 
     model_name = (
-        os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
         if provider == "groq"
         else os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     )

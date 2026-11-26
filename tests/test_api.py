@@ -49,6 +49,22 @@ def test_api_health_ready_endpoint(client: TestClient):
     assert data.get("service") == "ShellSathi"
 
 
+def test_api_ready_endpoint(client: TestClient):
+    """Verify GET /ready endpoint returns readiness status for orchestrator probes."""
+    response = client.get("/ready")
+    assert response.status_code in (200, 503)
+    data = response.json()
+    assert "status" in data
+    assert data.get("service") == "ShellSathi"
+
+
+def test_api_docs_endpoint(client: TestClient):
+    """Verify GET /docs serves OpenAPI interactive Swagger documentation."""
+    response = client.get("/docs")
+    assert response.status_code == 200
+    assert "text/html" in response.headers.get("content-type", "")
+
+
 def test_api_root_endpoint(client: TestClient):
     """Verify GET / root endpoint returns service description and feature catalog."""
     response = client.get("/")

@@ -421,9 +421,13 @@ if not st.session_state.authenticated:
         # ----------------- VIEW 1: LOGIN -----------------
         if st.session_state.auth_mode == "login":
             st.markdown("### 🔑 Terminal Authentication")
-            st.caption("Sign in with your registered ShellSathi credentials to access the terminal.")
+            st.caption(
+                "Sign in with your registered ShellSathi credentials to access the terminal."
+            )
 
-            login_email = st.text_input("📧 Terminal User / Email:", placeholder="e.g. harsh@shellsathi.com")
+            login_email = st.text_input(
+                "📧 Terminal User / Email:", placeholder="e.g. harsh@shellsathi.com"
+            )
             login_password = st.text_input(
                 "🔒 Password:",
                 type=pwd_input_type,
@@ -440,7 +444,9 @@ if not st.session_state.authenticated:
                 else:
                     st.error(f"❌ {msg}")
 
-            st.caption("💡 Presentation accounts: `harsh@shellsathi.com` (`Harsh@123`) or `admin@shellsathi.com` (`Admin@123`)")
+            st.caption(
+                "💡 Presentation accounts: `harsh@shellsathi.com` (`Harsh@123`) or `admin@shellsathi.com` (`Admin@123`)"
+            )
             st.markdown("---")
 
             nav_col1, nav_col2 = st.columns(2)
@@ -469,7 +475,9 @@ if not st.session_state.authenticated:
                 placeholder="Re-type your password...",
             )
 
-            if st.button("🚀 Register & Activate Account", type="primary", use_container_width=True):
+            if st.button(
+                "🚀 Register & Activate Account", type="primary", use_container_width=True
+            ):
                 if reg_password != reg_confirm:
                     st.error("❌ Passwords do not match.")
                 else:
@@ -494,7 +502,9 @@ if not st.session_state.authenticated:
             st.markdown("### 🔑 Reset Account Password")
             st.caption("Provide your registered email to establish a new password.")
 
-            reset_email = st.text_input("📧 Registered Email Address:", placeholder="e.g. harsh@shellsathi.com")
+            reset_email = st.text_input(
+                "📧 Registered Email Address:", placeholder="e.g. harsh@shellsathi.com"
+            )
             reset_pwd1 = st.text_input(
                 "🔒 New Password (min 6 chars):",
                 type=pwd_input_type,
@@ -562,7 +572,9 @@ with st.sidebar:
     start_keep_alive_pinger(st.session_state.backend_url)
 
     health_info = check_backend_health(st.session_state.backend_url)
-    is_local = any(h in st.session_state.backend_url for h in ("localhost", "127.0.0.1", "api:8000"))
+    is_local = any(
+        h in st.session_state.backend_url for h in ("localhost", "127.0.0.1", "api:8000")
+    )
 
     if health_info["online"]:
         chunks = health_info["data"].get("indexed_chunks", "N/A")
@@ -692,7 +704,9 @@ for msg_idx, message in enumerate(st.session_state.messages):
 # Agent Human-in-the-Loop Approval Banner
 if st.session_state.pending_approval:
     pending = st.session_state.pending_approval
-    st.warning("⚠️ **Human Authorization Required:** The ShellSathi agent has requested your approval to proceed.")
+    st.warning(
+        "⚠️ **Human Authorization Required:** The ShellSathi agent has requested your approval to proceed."
+    )
     st.markdown(f"**Action proposed:** {pending.get('action_summary', 'Execute agent tool')}")
 
     col_appr, col_rej, _ = st.columns([1.5, 1.5, 7])
@@ -745,7 +759,9 @@ if st.session_state.pending_approval:
 
 
 # Interactive Chat Input
-chat_input_val = st.chat_input("Ask a Linux command question (e.g. 'find all Python files', 'chmod 755 to symbolic')...")
+chat_input_val = st.chat_input(
+    "Ask a Linux command question (e.g. 'find all Python files', 'chmod 755 to symbolic')..."
+)
 user_prompt = chat_input_val or st.session_state.pop("quick_prompt", None)
 
 if user_prompt:
@@ -770,7 +786,9 @@ if user_prompt:
 
                     msg_key_id = f"msg_{len(st.session_state.messages)}"
                     for t_idx, tmpl in enumerate(templates):
-                        render_placeholder_filler(tmpl, f"new_{len(st.session_state.messages)}_{t_idx}")
+                        render_placeholder_filler(
+                            tmpl, f"new_{len(st.session_state.messages)}_{t_idx}"
+                        )
 
                     st.session_state.messages.append(
                         {
@@ -837,7 +855,9 @@ if user_prompt:
                         st.rerun()
                     else:
                         for t_idx, tmpl in enumerate(templates):
-                            render_placeholder_filler(tmpl, f"new_{len(st.session_state.messages)}_{t_idx}")
+                            render_placeholder_filler(
+                                tmpl, f"new_{len(st.session_state.messages)}_{t_idx}"
+                            )
 
                         st.session_state.messages.append(
                             {
